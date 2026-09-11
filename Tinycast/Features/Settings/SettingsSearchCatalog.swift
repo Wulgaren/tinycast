@@ -403,6 +403,9 @@ enum SettingsSearchCatalog {
             .clipboardGlobalShortcuts, "Clipboard History",
             keywords: ["hotkey", "paste", "browser"]),
         .init(
+            .clipboardGlobalShortcuts, "Open with ⌘4 in palette",
+            keywords: ["favorite", "slot", "command four", "hotkey", "shortcut"]),
+        .init(
             .clipboardHistory, "Keep history for",
             keywords: ["retention", "delete", "privacy", "expire"]),
         .init(

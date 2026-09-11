@@ -138,6 +138,22 @@ struct AppNameTest {
             BundleLocalization.names(for: monitor, languages: codes(["en-US"]))
                 == ["Activity Monitor"])
 
+        // System Settings ships English only as en~mac; bare en is missing. A Mac with Polish
+        // secondary used to fall through to pl and label the row Ustawienia while Finder stayed English.
+        let settings = makeLocalizedApp(
+            "System Settings.app",
+            table: [
+                "en~mac": ["CFBundleDisplayName": "System Settings"],
+                "en~iphone": ["CFBundleDisplayName": "Settings"],
+                "pl": ["CFBundleDisplayName": "Ustawienia systemowe"],
+                "pl~mac": ["CFBundleDisplayName": "Ustawienia systemowe"],
+                "pl~iphone": ["CFBundleDisplayName": "Ustawienia"],
+            ])
+        check(
+            "an English-primary Mac with Polish secondary still labels from en~mac",
+            BundleLocalization.names(for: settings, languages: codes(["en-US", "pl-PL"]))
+                == ["System Settings", "Ustawienia systemowe"])
+
         try? fm.removeItem(at: root)
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) FAILED")
         exit(failures == 0 ? 0 : 1)

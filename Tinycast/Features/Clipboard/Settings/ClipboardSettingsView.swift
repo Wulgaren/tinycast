@@ -23,6 +23,12 @@ struct ClipboardSettingsView: View {
                 SettingsRow(title: "Clipboard History", anchor: .clipboardGlobalShortcuts) {
                     ShortcutRecorder(action: .command(.clipboardHistory))
                 }
+                Toggle(isOn: $settings.clipboardCommandFourOpensHistory) {
+                    SettingsRowTitle(.clipboardGlobalShortcuts, "Open with ⌘4 in palette")
+                    Text(
+                        "When the palette is open, ⌘4 opens clipboard history instead of the fourth favorite."
+                    )
+                }
             } header: {
                 SettingsSectionHeader(.clipboardGlobalShortcuts)
             } footer: {
