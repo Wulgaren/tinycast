@@ -58,6 +58,9 @@ struct SettingsBackup: Codable {
         var quicklinkOpensNewWindow: Bool?
         var quicklinkSelectionFallback: String?
         var quicklinkConfirmsBeforeDelete: Bool?
+        // Carried, unlike `snippetsEnabled`: running a shortcut grants no permission class of its own.
+        var appleShortcutsEnabled: Bool?
+        var appleShortcutsShowInLauncher: Bool?
         // `calendarEnabled` is absent: an import must not grant calendar access.
         var calendarShowInLauncher: Bool?
         var calendarLauncherLimit: Int?
@@ -147,6 +150,8 @@ extension SettingsBackup {
             quicklinkOpensNewWindow: s.quicklinkOpensNewWindow,
             quicklinkSelectionFallback: s.quicklinkSelectionFallback.rawValue,
             quicklinkConfirmsBeforeDelete: s.quicklinkConfirmsBeforeDelete,
+            appleShortcutsEnabled: s.appleShortcutsEnabled,
+            appleShortcutsShowInLauncher: s.appleShortcutsShowInLauncher,
             calendarShowInLauncher: s.calendarShowInLauncher,
             calendarLauncherLimit: s.calendarLauncherLimit.rawValue,
             calendarIncludesTomorrow: s.calendarIncludesTomorrow,
@@ -393,6 +398,14 @@ extension SettingsBackup {
         }
         if let flag = s.quicklinkConfirmsBeforeDelete {
             settings.quicklinkConfirmsBeforeDelete = flag
+            count += 1
+        }
+        if let flag = s.appleShortcutsEnabled {
+            settings.appleShortcutsEnabled = flag
+            count += 1
+        }
+        if let flag = s.appleShortcutsShowInLauncher {
+            settings.appleShortcutsShowInLauncher = flag
             count += 1
         }
         if let flag = s.calendarShowInLauncher {

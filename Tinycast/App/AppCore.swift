@@ -10,6 +10,7 @@ final class AppCore {
     let appIndex: AppIndex
     let customCommands = CustomCommandStore()
     let quicklinks = QuicklinkStore()
+    let appleShortcuts = AppleShortcutStore()
     let windowLayouts = WindowLayoutStore()
     let clipboardStore = ClipboardStore()
     @ObservationIgnored private var clipboardTextIndexer: ClipboardTextIndexer?
@@ -128,6 +129,7 @@ final class AppCore {
         snippetCoordinator: snippetCoordinator, fileSearchCoordinator: fileSearchCoordinator,
         notesCoordinator: notesCoordinator, extensionCoordinator: extensionCoordinator,
         calendarCoordinator: calendarCoordinator,
+        appleShortcutCoordinator: appleShortcutCoordinator,
         core: self)
     @ObservationIgnored private(set) lazy var fallbackCoordinator = FallbackCoordinator(
         store: fallbacks, quicklinks: quicklinks, settings: settings, core: self)
@@ -142,6 +144,9 @@ final class AppCore {
         calcHistory: calcHistory, paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var calendarCoordinator = CalendarCoordinator(
         store: calendarStore, clock: meetingClock, appIndex: appIndex, settings: settings,
+        paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var appleShortcutCoordinator = AppleShortcutCoordinator(
+        store: appleShortcuts, appIndex: appIndex, settings: settings,
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var fileSearchCoordinator = FileSearchCoordinator(
         settings: settings, appIndex: appIndex, session: fileSearch, palette: palette,
@@ -236,6 +241,7 @@ final class AppCore {
             quicklinkCoordinator.applyQuicklinksPresence()
             updateCoordinator.applyEnabled()
             calendarCoordinator.applyEnabled()
+            appleShortcutCoordinator.applyEnabled()
             Task { await appIndex.refresh() }
             Task { await emojiIndex.load() }
             currencyRates.start()
@@ -266,6 +272,9 @@ final class AppCore {
             }
             hotKeys.onOpenQuicklink = { [weak self] id in
                 self?.quicklinkCoordinator.openQuicklink(id: id)
+            }
+            hotKeys.onRunAppleShortcut = { [weak self] id in
+                self?.appleShortcutCoordinator.runShortcut(identifier: id)
             }
             hotKeys.onRunQuickAction = { [weak self] id in
                 self?.quickActionCoordinator.run(id: id)
@@ -354,6 +363,8 @@ final class AppCore {
             return customCommands.command(id: id)?.name
         case .quicklink(let id):
             return quicklinks.quicklink(id: id)?.name
+        case .appleShortcut(let id):
+            return appleShortcuts.shortcut(identifier: id)?.name
         case .quickAction(let id):
             return customQuickActions.action(id: id)?.name
         case .windowLayout(let id):
@@ -404,6 +415,7 @@ final class AppCore {
         textInjector.prepareForTermination()
         snippetListener.stop()
         snippetsStore.stop()
+        appleShortcuts.stop()
         aiChat.cancel()
         chatGPTSubscription.stop()
         mcp.stop()
@@ -469,6 +481,11 @@ final class AppCore {
                 _ = $0.quicklinksEnabled
                 _ = $0.quicklinksShowInLauncher
             }, reproject: { $0.quicklinkCoordinator.applyQuicklinksPresence() })
+        track(
+            {
+                _ = $0.appleShortcutsEnabled
+                _ = $0.appleShortcutsShowInLauncher
+            }, reproject: { $0.appleShortcutCoordinator.applyEnabled() })
         track(
             { _ = $0.clipboardEnabled }, reproject: { $0.clipboardCoordinator.applyEnabled() })
         track(

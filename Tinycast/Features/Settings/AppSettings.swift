@@ -461,6 +461,18 @@ final class AppSettings {
         }
     }
 
+    /// Off means fully off, down to a still-registered shortcut opening nothing.
+    var appleShortcutsEnabled: Bool {
+        didSet { defaults.set(appleShortcutsEnabled, forKey: Key.appleShortcutsEnabled.rawValue) }
+    }
+
+    var appleShortcutsShowInLauncher: Bool {
+        didSet {
+            defaults.set(
+                appleShortcutsShowInLauncher, forKey: Key.appleShortcutsShowInLauncher.rawValue)
+        }
+    }
+
     /// Whether the support window may reopen itself; off means never ask again.
     var supportRemindersEnabled: Bool {
         didSet { defaults.set(supportRemindersEnabled, forKey: Key.supportReminders.rawValue) }
@@ -611,6 +623,10 @@ final class AppSettings {
         quicklinkConfirmsBeforeDelete =
             defaults.object(forKey: Key.quicklinkConfirmsBeforeDelete.rawValue) == nil
             || defaults.bool(forKey: Key.quicklinkConfirmsBeforeDelete.rawValue)
+        appleShortcutsEnabled = defaults.bool(forKey: Key.appleShortcutsEnabled.rawValue)
+        appleShortcutsShowInLauncher =
+            defaults.object(forKey: Key.appleShortcutsShowInLauncher.rawValue) == nil
+            || defaults.bool(forKey: Key.appleShortcutsShowInLauncher.rawValue)
         supportRemindersEnabled =
             defaults.object(forKey: Key.supportReminders.rawValue) == nil
             || defaults.bool(forKey: Key.supportReminders.rawValue)

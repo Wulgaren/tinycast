@@ -141,6 +141,10 @@ struct LauncherScreen: PaletteScreen {
                 placement: .afterQuery, onOpenOptions: openArgumentOptions,
                 onSubmit: { activate(at: selection) })
         }
+        if entry.kind == .appleShortcut {
+            return AppleShortcutArgumentsAccessory.make(
+                entry: entry, vm: vm, focus: focus, onSubmit: { activate(at: selection) })
+        }
         return ExtensionArgumentsAccessory.make(
             entry: entry, coordinator: core.extensionCoordinator,
             values: { name in headerFieldBinding(entry: entry, name: name) },
@@ -157,6 +161,10 @@ struct LauncherScreen: PaletteScreen {
         if entry.kind == .quicklink {
             guard let quicklink = quicklink(for: entry) else { return [:] }
             return QuicklinkArgumentsAccessory.values(for: quicklink, core: core, vm: vm)
+        }
+        if entry.kind == .appleShortcut {
+            let typed = AppleShortcutArgumentsAccessory.input(for: entry.id, vm: vm)
+            return typed.isEmpty ? [:] : [AppleShortcut.inputArgumentName: typed]
         }
         var values: [String: String] = [:]
         for argument in core.extensionCoordinator.commandArguments(for: entry) ?? [] {

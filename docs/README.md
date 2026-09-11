@@ -35,6 +35,7 @@ open with an `## Invariants` section; read it before changing anything in that a
 [notes](features/notes.md) ·
 [snippets](features/snippets.md) ·
 [quicklinks](features/quicklinks.md) ·
+[apple shortcuts](features/apple-shortcuts.md) ·
 [hotkeys](features/hotkeys.md) ·
 [window management](features/window-management.md) ·
 [window layouts](features/window-layouts.md) ·

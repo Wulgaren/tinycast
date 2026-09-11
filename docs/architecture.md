@@ -21,11 +21,12 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory · WindowLayout/* ·      │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ Quicklink{,Destination,Store,Archive} · Notes/Model/* · Snippets/Model/* · │
-│ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
-│ RaycastDecoder · Scrypt · AppSettingsKey · SettingsBackupCoverage          │
-│ MeetingLink · MeetingEvent · UpcomingWindow · MeetingDay · MenuBarSummary  │
-│ AutoJoinPolicy · EventDraft · SupportReminderSchedule                      │
+│ Quicklink{,Destination,Store,Archive} · AppleShortcut · Notes/Model/* ·    │
+│ Snippets/Model/* · ShellCommandRunner · DoubleTap{Modifier,Detector} ·     │
+│ ClipboardStore · RaycastDecoder · Scrypt · AppSettingsKey ·                │
+│ SettingsBackupCoverage · MeetingLink · MeetingEvent · UpcomingWindow ·     │
+│ MeetingDay · MenuBarSummary · AutoJoinPolicy · EventDraft ·                │
+│ SupportReminderSchedule                                                    │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ consumed by
 ┌─ EFFECT ─────────────────────────▼─────────────────────────────────────────┐
@@ -33,11 +34,11 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ AppIndex · SpotlightNames · FileSearchService · SettingsPaneScanner ·      │
 │ AXWindowAccess · AXScreens · WindowInventory · WindowLayoutRunner ·        │
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
-│ SystemActionRunner · QuicklinkLauncher · TextInjector ·             │
-│ SnippetKeywordListener · NotesRepository · CurrencyRateStore · Paster ·    │
-│ HotKeyCenter · HyperKeyTap · DoubleTapMonitor · RunningAppsMonitor ·       │
-│ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·           │
-│ SupportReminderStore                                                       │
+│ SystemActionRunner · QuicklinkLauncher · AppleShortcut{Store,Runner} ·     │
+│ TextInjector · SnippetKeywordListener · NotesRepository ·                   │
+│ CurrencyRateStore · Paster · HotKeyCenter · HyperKeyTap ·                  │
+│ DoubleTapMonitor · RunningAppsMonitor · CalendarStore · MeetingLauncher ·  │
+│ MeetingClock · CameraSession · SupportReminderStore                        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
@@ -212,8 +213,8 @@ Tinycast/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ Notes/ Quicklinks/ Snippets/
-    Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/ WindowManagement/ Onboarding/
+    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ Notes/ Quicklinks/ AppleShortcuts/
+    Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/ WindowManagement/ Onboarding/
     Updates/ Support/ AI/ Settings/
     Extensions/
         Model/      pure — the harness inputs

@@ -16,6 +16,8 @@ enum HotKeyAction: Hashable, Sendable {
     case quickAction(id: UUID)
     /// Keyed by `AppEntry.id`, which is what survives a reinstall of the extension.
     case extensionCommand(entryID: String)
+    /// Keyed by the Shortcuts app identifier from `shortcuts list --show-identifiers`.
+    case appleShortcut(id: String)
 
     /// The UserDefaults key, and the `HotKeyCenter` registration id: one per action.
     var defaultsKey: String {
@@ -31,6 +33,7 @@ enum HotKeyAction: Hashable, Sendable {
         case .quicklink(let id): "hotkey.quicklink." + id.uuidString.lowercased()
         case .quickAction(let id): "hotkey.quickAction." + id.uuidString.lowercased()
         case .extensionCommand(let entryID): "hotkey.extensionCommand." + entryID
+        case .appleShortcut(let id): "hotkey.appleShortcut." + id
         }
     }
 

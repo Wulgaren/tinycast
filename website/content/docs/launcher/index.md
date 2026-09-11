@@ -4,7 +4,8 @@ description: Fuzzy search across everything Tinycast knows about, and how result
 ---
 
 The launcher is the root screen. It searches applications, System Settings panes, quicklinks,
-snippets, system actions, window commands, custom commands and built-in commands at once.
+Apple Shortcuts, snippets, system actions, window commands, custom commands and built-in commands at
+once.
 
 <kbd>↵</kbd> opens the selection. <kbd>⌘</kbd><kbd>K</kbd> shows everything else you can do with it.
 
@@ -12,8 +13,8 @@ snippets, system actions, window commands, custom commands and built-in commands
 
 Favorites first, then each category in a fixed order:
 
-Applications → System Settings → Quicklinks → Snippets → System Actions → Window Management →
-Custom Commands → Commands
+Applications → System Settings → Quicklinks → Apple Shortcuts → Snippets → System Actions →
+Window Management → Custom Commands → Commands
 
 Once you type, that structure collapses into a single **Results** list ordered by relevance.
 
