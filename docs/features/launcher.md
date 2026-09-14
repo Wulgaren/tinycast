@@ -581,6 +581,9 @@ across the list — the top of Favorites on add, the neighbour above the one tha
 ⌘0**. They match the physical number row, not the character produced by the current keyboard layout,
 so the same positions work on QWERTY and AZERTY. The same slots address pinned Clipboard entries in
 that screen; the eleventh favorite is still listed and reorderable, and simply has no slot.
+`clipboardCommandFourOpensHistory` (off by default) steals ⌘4 while the palette is open: it opens
+clipboard history instead of the fourth favorite or fourth visible pin, and hides that digit on the
+row. Already on clipboard, ⌘4 is a no-op.
 
 Both palette sizes serve the chords from the same prefix, because `paletteIsCollapsed` already
 requires an empty query: **compact implies empty implies `favoriteCount` is the pinned prefix**. That

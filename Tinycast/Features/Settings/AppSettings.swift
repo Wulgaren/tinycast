@@ -132,6 +132,15 @@ final class AppSettings {
         didSet { defaults.set(clipboardTextSearchEnabled, forKey: Key.clipboardTextSearchEnabled.rawValue) }
     }
 
+    /// When on, ⌘4 in an open palette opens clipboard history instead of the fourth favorite.
+    var clipboardCommandFourOpensHistory: Bool {
+        didSet {
+            defaults.set(
+                clipboardCommandFourOpensHistory,
+                forKey: Key.clipboardCommandFourOpensHistory.rawValue)
+        }
+    }
+
     var clipboardRetention: ClipboardRetention {
         didSet {
             defaults.set(clipboardRetention.rawValue, forKey: Key.clipboardRetention.rawValue)
@@ -473,6 +482,8 @@ final class AppSettings {
             || defaults.bool(forKey: Key.clipboardEnabled.rawValue)
         // `integer(forKey:)` returns 0 when unset, which no case matches.
         clipboardTextSearchEnabled = defaults.bool(forKey: Key.clipboardTextSearchEnabled.rawValue)
+        clipboardCommandFourOpensHistory = defaults.bool(
+            forKey: Key.clipboardCommandFourOpensHistory.rawValue)
         clipboardRetention =
             ClipboardRetention(rawValue: defaults.integer(forKey: Key.clipboardRetention.rawValue))
             ?? .threeMonths

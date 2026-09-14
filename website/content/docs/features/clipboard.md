@@ -58,12 +58,16 @@ bare domain — which must be lower case and end in a common TLD, so `Safari.app
 
 **Settings → Clipboard**
 
-| Setting               | Options                                                           | Default                    |
-| --------------------- | ----------------------------------------------------------------- | -------------------------- |
-| Global shortcut       | —                                                                 | None                       |
-| Keep history for      | 1 Day · 1 Week · 1 Month · 3 Months · 6 Months · 1 Year · Forever | **3 Months**               |
-| Disabled Applications | An app list                                                       | Keychain Access, Passwords |
-| Clear history         | —                                                                 | —                          |
+| Setting                      | Options                                                           | Default                    |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------------- |
+| Global shortcut              | —                                                                 | None                       |
+| Open with ⌘4 in palette      | On · Off                                                          | **Off**                    |
+| Keep history for             | 1 Day · 1 Week · 1 Month · 3 Months · 6 Months · 1 Year · Forever | **3 Months**               |
+| Disabled Applications        | An app list                                                       | Keychain Access, Passwords |
+| Clear history                | —                                                                 | —                          |
+
+When **Open with ⌘4 in palette** is on, ⌘4 inside an open palette opens clipboard history instead of
+the fourth favorite.
 
 **Disabled Applications** ships pre-seeded with Keychain Access and Passwords, so Tinycast never
 records what you copy out of a password manager. Add your own.
