@@ -51,6 +51,10 @@ extension SettingsAnchor {
     static let fileSearchSearchScopes = Self(tab: .fileSearch, title: "Search Scopes")
     static let fileSearchIgnorePatterns = Self(tab: .fileSearch, title: "Ignore Patterns")
 
+    static let iCloudTabsFeature = Self(tab: .iCloudTabs, title: "iCloud Tabs")
+    static let iCloudTabsCommand = Self(tab: .iCloudTabs, title: "Commands")
+    static let iCloudTabsAccess = Self(tab: .iCloudTabs, title: "Access")
+
     static let notesNotes = Self(tab: .notes, title: "Notes")
     static let notesCommands = Self(tab: .notes, title: "Commands")
 

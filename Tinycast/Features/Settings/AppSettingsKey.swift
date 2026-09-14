@@ -24,6 +24,7 @@ enum AppSettingsKey: String, CaseIterable {
     case paletteDraggable = "paletteDraggable"
     case palettePosition = "palettePosition"
     case fileSearchEnabled = "fileSearchEnabled"
+    case iCloudTabsEnabled = "iCloudTabsEnabled"
     case fileSearchScopes = "fileSearchScopes"
     case fileSearchIgnorePatterns = "fileSearchIgnorePatterns"
     case notesEnabled = "notesEnabled"

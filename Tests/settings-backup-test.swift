@@ -59,7 +59,8 @@ struct SettingsBackupTest {
 
         // Named one by one: a backup now carries content, so it is far likelier to be sent on.
         for key: AppSettingsKey in [
-            .snippetsEnabled, .extensionsEnabled, .calendarEnabled, .autoJoinMeetings,
+            .snippetsEnabled, .extensionsEnabled, .calendarEnabled, .iCloudTabsEnabled,
+            .autoJoinMeetings,
             .cameraPreview, .quickActionsEnabled
         ] {
             check(

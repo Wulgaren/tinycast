@@ -68,9 +68,9 @@ with no command row. A command reachable from its own feature pane is one bindin
 not two settings, and `HotKeyManager` names them all through `CommandID`, so a conflict callout spells
 an action exactly as its command row does.
 
-Like a window command, the chord registers regardless of the launcher row. Search Files and Notes both
-re-check their feature switches before opening; see [file-search.md](file-search.md#invocation) and
-[notes.md](notes.md#ownership-and-enablement). A hidden launcher row does not disable its shortcut, but
+Like a window command, the chord registers regardless of the launcher row. Search Files, Notes and
+iCloud Tabs all re-check their feature switches before opening; see [file-search.md](file-search.md#invocation),
+[notes.md](notes.md#ownership-and-enablement) and [icloud-tabs.md](icloud-tabs.md). A hidden launcher row does not disable its shortcut, but
 disabling the feature does. `SettingsBackup.HotkeyBackup` carries them as one `commands` map keyed by
 `CommandID` raw value.
 

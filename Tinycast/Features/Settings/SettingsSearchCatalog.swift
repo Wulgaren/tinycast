@@ -109,9 +109,9 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings
-        + systemActions + commands + quicklinks + fallbacks + ai + quickActions + fileSearch + notes
-        + snippets + windowManagement + clipboard + emoji + calendar + extensions + permissions
-        + backup + about
+        + systemActions + commands + quicklinks + fallbacks + ai + quickActions + fileSearch
+        + iCloudTabs + notes + snippets + windowManagement + clipboard + emoji + calendar
+        + extensions + permissions + backup + about
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
@@ -317,6 +317,21 @@ enum SettingsSearchCatalog {
         .init(
             group: .fileSearchIgnorePatterns, "Ignore Patterns",
             keywords: ["exclude", "glob", "node_modules", "skip"])
+    ]
+
+    private static let iCloudTabs: [SettingsSearchEntry] = [
+        .init(
+            pane: .iCloudTabs,
+            keywords: ["safari", "tabs", "icloud", "devices", "iphone", "ipad"]),
+        .init(
+            .iCloudTabsFeature, "Enable iCloud Tabs",
+            keywords: ["safari", "sync", "devices"]),
+        .init(
+            group: .iCloudTabsCommand, "iCloud Tabs",
+            keywords: ["shortcut", "launcher", "command"]),
+        .init(
+            .iCloudTabsAccess, "Full Disk Access",
+            keywords: ["permission", "privacy", "tcc", "safari"])
     ]
 
     private static let notes: [SettingsSearchEntry] = [
