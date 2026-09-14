@@ -62,13 +62,15 @@ Shows the Accessibility status and opens the right System Settings pane. See
 
 ## Launcher panes
 
-**Applications** · **System Settings** · **System Actions** · **Commands** · **Quicklinks**
+**Applications** · **System Settings** · **System Actions** · **Commands** · **Quicklinks** ·
+**Apple Shortcuts**
 
 Each is a list with a **Show in launcher** master toggle and, per row, a visibility checkbox, a
 shortcut recorder and an [alias](/docs/launcher/aliases) field. Longer lists have a filter field.
 
 **Commands** additionally holds the [Custom Commands](/docs/launcher/commands#custom-commands)
-switch, and **Quicklinks** holds the [Quicklinks](/docs/launcher/quicklinks) switch.
+switch, **Quicklinks** holds the [Quicklinks](/docs/launcher/quicklinks) switch, and
+**Apple Shortcuts** holds the [Apple Shortcuts](/docs/launcher/apple-shortcuts) switch.
 
 ## Feature panes
 

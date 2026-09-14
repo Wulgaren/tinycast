@@ -17,6 +17,7 @@ final class LauncherCoordinator {
     private let notesCoordinator: NotesCoordinator
     private let extensionCoordinator: ExtensionCoordinator
     private let calendarCoordinator: CalendarCoordinator
+    private let appleShortcutCoordinator: AppleShortcutCoordinator
     /// The backup commands only, which need the live stores to gather from and apply to.
     private unowned let core: AppCore
 
@@ -35,6 +36,7 @@ final class LauncherCoordinator {
         notesCoordinator: NotesCoordinator,
         extensionCoordinator: ExtensionCoordinator,
         calendarCoordinator: CalendarCoordinator,
+        appleShortcutCoordinator: AppleShortcutCoordinator,
         core: AppCore
     ) {
         self.ranking = ranking
@@ -51,6 +53,7 @@ final class LauncherCoordinator {
         self.notesCoordinator = notesCoordinator
         self.extensionCoordinator = extensionCoordinator
         self.calendarCoordinator = calendarCoordinator
+        self.appleShortcutCoordinator = appleShortcutCoordinator
         self.core = core
     }
 
@@ -123,6 +126,12 @@ final class LauncherCoordinator {
             quicklinkCoordinator.openQuicklink(id: id, values: arguments)
             return
         }
+        if app.kind == .appleShortcut {
+            guard let id = AppleShortcut.identifier(fromEntryID: app.id) else { return }
+            let input = arguments[AppleShortcut.inputArgumentName] ?? ""
+            appleShortcutCoordinator.runShortcut(identifier: id, input: input)
+            return
+        }
         let previous = windowController.previousApp
         paletteCoordinator.hidePalette(restoreFocus: false)
         switch app.kind {
@@ -135,7 +144,7 @@ final class LauncherCoordinator {
             let snippetID = String(app.id.dropFirst("snippet:".count))
             snippetCoordinator.expandSnippet(id: snippetID, targetApp: previous)
         case .command, .quickAction, .customCommand, .systemAction, .windowCommand, .windowLayout,
-            .quicklink, .extensionCommand, .meeting:
+            .quicklink, .extensionCommand, .meeting, .appleShortcut:
             break  // handled above
         }
     }

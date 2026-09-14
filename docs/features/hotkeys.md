@@ -43,12 +43,13 @@ Bindings persist as JSON strings under `hotkey.<action>` UserDefaults keys, comp
 `HotKeyAction.defaultsKey`, which doubles as the `HotKeyCenter` registration id. The set of bound
 bundle IDs lives in `boundAppBundleIDs` and is re-registered on launch. System Settings panes use
 `boundPaneBundleIDs`; custom commands, quicklinks and window layouts use their stable UUIDs in
-`boundCustomCommandIDs`, `boundQuicklinkIDs` and `boundWindowLayoutIDs`. Those three are the per-item
-case — unlike a fixed catalog, there is no `allCases` to walk — so each needs an index for `start()`
-to re-register from
-and to prune bindings whose record was deleted while Tinycast wasn't running. That prune is why
-`QuicklinkStore` loads at launch even when the feature is off
-(see [quicklinks.md](quicklinks.md#hotkeys)).
+`boundCustomCommandIDs`, `boundQuicklinkIDs` and `boundWindowLayoutIDs`. Apple Shortcuts use the
+Shortcuts identifier string in `boundAppleShortcutIDs` (never pruned at launch — a missing library
+entry looks the same as "not loaded yet", the way extension commands do). Those per-item indexes are
+needed because, unlike a fixed catalog, there is no `allCases` to walk — so each needs an index for
+`start()` to re-register from and, where it is safe, to prune bindings whose record was deleted while
+Tinycast wasn't running. That prune is why `QuicklinkStore` loads at launch even when the feature is
+off (see [quicklinks.md](quicklinks.md#hotkeys)).
 
 `HotKeyBinding` takes the synthesised `Codable`, so a `.combo` writes
 `{"combo":{"_0":{"carbonKeyCode":N,"carbonModifiers":N}}}` and a `.doubleTap` writes

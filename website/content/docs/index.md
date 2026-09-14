@@ -42,6 +42,7 @@ Seven features ship **off** and stay completely inert until you enable them:
 | [Snippets](/docs/features/snippets)                   | Settings → Snippets          |
 | [Window Management](/docs/features/window-management) | Settings → Window Management |
 | [Quicklinks](/docs/launcher/quicklinks)               | Settings → Quicklinks        |
+| [Apple Shortcuts](/docs/launcher/apple-shortcuts)     | Settings → Apple Shortcuts   |
 | [Custom commands](/docs/launcher/commands)            | Settings → Commands          |
 | [Extensions](/docs/extensions)                        | Settings → Extensions        |
 

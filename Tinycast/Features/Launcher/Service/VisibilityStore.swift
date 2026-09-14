@@ -73,7 +73,7 @@ final class VisibilityStore {
         // A Quick Action command answers to `quickActionsEnabled`, not to the Commands category.
         case .command(let id): id.entryKind == .command ? isKindEnabled(.command) : true
         case .togglePalette, .quickAction, .customCommand, .windowCommand, .windowLayout,
-            .quicklink, .extensionCommand:
+            .quicklink, .extensionCommand, .appleShortcut:
             true
         }
     }

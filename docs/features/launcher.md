@@ -413,9 +413,9 @@ permission-aware failures. With the palette closed it targets the frontmost app,
 Quit All act on the same window a palette launch would have.
 
 System actions occupy their own launcher section and their own Settings pane. The empty-query publication
-order is applications, System Settings, quicklinks, snippets, system actions, window commands, custom
-commands, then built-in commands; the sectioned view filters in that same order so the visible rows remain
-identical to the flat selection index.
+order is applications, System Settings, quicklinks, Apple Shortcuts, snippets, system actions,
+window commands, custom commands, then built-in commands; the sectioned view filters in that same
+order so the visible rows remain identical to the flat selection index.
 Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
 action is bindable to a global shortcut from Settings › System Actions
 (see [hotkeys.md](hotkeys.md)).
