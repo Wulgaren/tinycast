@@ -303,7 +303,7 @@ screens hold (see [palette.md](palette.md)).
   panel fire the same one without resolving an icon per arrow key.
 - **Feedback** — `showToast` stacks above the footer, `showHUD` is a centred pill, and `confirmAlert`
   goes through `DialogController` like every other question the app asks. Its dialog sits at
-  `.modalPanel`, above the palette's `.floating`, so a view command keeps its screen behind it — and
+  `WindowLevels.dialog`, above every other Tinycast surface, so a view command keeps its screen behind it — and
   the palette does not dismiss while it is up (`AppCore.isShowingDialog`), because dismissing pops to
   root, which would tear the command down before its `await confirmAlert(…)` ever returns.
 - **Command arguments** — a command declaring `arguments` shows inline fields sized to their

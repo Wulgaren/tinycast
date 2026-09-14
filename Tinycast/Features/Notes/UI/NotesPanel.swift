@@ -21,7 +21,7 @@ final class NotesPanel: NSPanel {
         )
         isFloatingPanel = true
         hidesOnDeactivate = false
-        level = .floating
+        level = WindowLevels.surface
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         isMovableByWindowBackground = false
         isOpaque = false
