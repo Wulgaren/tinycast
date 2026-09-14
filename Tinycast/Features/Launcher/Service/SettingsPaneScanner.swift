@@ -72,18 +72,13 @@ enum SettingsPaneScanner {
     private static func loctableName(appexURL: URL) -> String? {
         let url = appexURL.appendingPathComponent("Contents/Resources/InfoPlist.loctable")
         guard let table = plist(at: url) else { return nil }
-        var codes = Locale.preferredLanguages.flatMap { tag -> [String] in
-            // loctable keys use underscores where language tags use hyphens.
-            let underscored = tag.replacingOccurrences(of: "-", with: "_")
-            let bare = tag.split(separator: "-").first.map(String.init)
-            return ([underscored, bare].compactMap { $0 }).filter { !$0.isEmpty }
-        }
-        codes.append("en")
-        for code in codes {
-            if let entry = table[code] as? [String: Any],
-                let name = AppDisplayName.named(entry["CFBundleDisplayName"])
-            {
-                return name
+        for code in BundleLocalization.indexedLanguages(Locale.preferredLanguages) {
+            for key in BundleLocalization.loctableKeys(for: code) {
+                if let entry = table[key] as? [String: Any],
+                    let name = AppDisplayName.named(entry["CFBundleDisplayName"])
+                {
+                    return name
+                }
             }
         }
         return nil

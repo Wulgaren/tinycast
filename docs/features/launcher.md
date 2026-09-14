@@ -161,6 +161,11 @@ ICU entirely on a fast scalar check.
 `InfoPlist.strings`, and every app under `/System/Applications` translates in the loctable alone — so
 all 65 of them read English on every Mac, whatever language it is set to.
 
+For each language code it tries `code~mac` before the bare key: System Settings and several other
+system apps ship English only as `en~mac`, with no bare `en`. Without that, a Mac whose preferred
+list is English then Polish would miss English and label the row in Polish while Finder stayed
+English.
+
 The user's own language wins the **display name**, so a row reads the way Finder reads it. The rest,
 English included, ride along as `.translation`. `AppDisplayName.inInfo` reads the `-macos` variant of
 each key before the bare one, the way `CFBundle` does: Image Playground's loctable spells the bare

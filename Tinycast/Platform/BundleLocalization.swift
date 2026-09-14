@@ -33,6 +33,11 @@ enum BundleLocalization {
         return "\(code)-\(region.identifier)"
     }
 
+    /// `lang~mac` before bare `lang` — system loctables often omit bare English.
+    nonisolated static func loctableKeys(for code: String) -> [String] {
+        ["\(code)~mac", code]
+    }
+
     /// Every localized name the bundle carries, most preferred language first.
     nonisolated static func names(for bundleURL: URL, languages: [String]) -> [String] {
         let resources = bundleURL.appendingPathComponent("Contents/Resources", isDirectory: true)
@@ -42,7 +47,9 @@ enum BundleLocalization {
         for code in languages {
             let strings = plist(
                 at: resources.appendingPathComponent("\(code).lproj/InfoPlist.strings"))
-            for source in [table?[code] as? [String: Any], strings] {
+            let sources: [[String: Any]?] =
+                loctableKeys(for: code).map { table?[$0] as? [String: Any] } + [strings]
+            for source in sources {
                 guard let source, let name = AppDisplayName.inInfo(source),
                     seen.insert(FuzzyMatch.normalized(name)).inserted
                 else { continue }
