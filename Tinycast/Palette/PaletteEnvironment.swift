@@ -18,6 +18,7 @@ extension View {
             .environment(core.emojiIndex)
             .environment(core.frequentEmoji)
             .environment(core.fileSearch)
+            .environment(core.iCloudTabs)
             .environment(core.runningApps)
             .environment(core.hotKeys)
             .environment(core.uninstall)

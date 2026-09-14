@@ -254,6 +254,10 @@ final class AppSettings {
         didSet { defaults.set(fileSearchEnabled, forKey: Key.fileSearchEnabled.rawValue) }
     }
 
+    var iCloudTabsEnabled: Bool {
+        didSet { defaults.set(iCloudTabsEnabled, forKey: Key.iCloudTabsEnabled.rawValue) }
+    }
+
     /// Tilde-abbreviated, so a backup taken on one machine still points somewhere on another.
     var fileSearchScopes: [String] {
         didSet { defaults.set(fileSearchScopes, forKey: Key.fileSearchScopes.rawValue) }
@@ -546,6 +550,7 @@ final class AppSettings {
         palettePosition = (defaults.array(forKey: Key.palettePosition.rawValue) as? [Double])
             .flatMap { $0.count == 2 ? CGPoint(x: $0[0], y: $0[1]) : nil }
         fileSearchEnabled = defaults.bool(forKey: Key.fileSearchEnabled.rawValue)
+        iCloudTabsEnabled = defaults.bool(forKey: Key.iCloudTabsEnabled.rawValue)
         // Unset seeds home; a stored empty array is a cleared list that searches nothing.
         fileSearchScopes =
             defaults.stringArray(forKey: Key.fileSearchScopes.rawValue)
