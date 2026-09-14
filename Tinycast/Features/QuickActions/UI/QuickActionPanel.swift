@@ -19,8 +19,8 @@ final class QuickActionPanel: NSPanel {
             defer: false
         )
         isFloatingPanel = true
-        // Above the palette, below a dialog: a failure report must still land on top of it.
-        level = .floating
+        // Below a dialog: a failure report must still land on top of it.
+        level = WindowLevels.surface
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         isMovableByWindowBackground = true
         titleVisibility = .hidden

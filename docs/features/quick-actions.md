@@ -160,7 +160,7 @@ replaced once a download the reader never saw has finished.
 
 `QuickActionPanel` is Tinycast's **fourth borderless surface**, beside the dialog, the notes panel
 and the join preview. It takes the same recipe — `panelScrim`, then `VisualEffectView`, then the
-clip — and sits at `.floating` like the join preview, so a failure report still lands on top of it.
+clip — and sits at `WindowLevels.surface` like the join preview, so a failure report still lands on top of it.
 Its buttons are the system's own — `Button` with `.borderedProminent` on Replace — not a copy of
 `DialogButton`. A dialog asks a question and styles its answers; this panel presents a result, and
 standard controls are what a reader expects to act on one with.

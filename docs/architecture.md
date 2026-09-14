@@ -140,7 +140,7 @@ driven imperatively from AppKit.
   height its content measured. Every route into it — the palette's menu circle, Settings → About, the
   menu bar, the launcher, and the 30-day reminder — lands on `showSupport()`, which is what moves the
   reminder's anchor. See [features/support.md](features/support.md).
-- **The camera surfaces** — a borderless, non-activating `CameraPanel` at `.floating`, in two
+- **The camera surfaces** — a borderless, non-activating `CameraPanel` at `WindowLevels.surface`, in two
   shapes over one `CameraSession`: `CameraPreviewController`, owned by `CalendarCoordinator`, gates a
   join and doubles as auto join's confirmation; `CameraCoordinator`, owned by `AppCore`, is the
   standalone `Open Camera` command. See [features/camera.md](features/camera.md) and
