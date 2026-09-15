@@ -5,6 +5,7 @@ enum AppSettingsKey: String, CaseIterable {
     // Every raw value is spelled out so renaming a case can never rename a persisted key.
     case clipboardEnabled = "clipboardEnabled"
     case clipboardTextSearchEnabled = "clipboardTextSearchEnabled"
+    case clipboardCommandFourOpensHistory = "clipboardCommandFourOpensHistory"
     case clipboardRetention = "clipboardRetentionDays"
     case clipboardDefaultAction = "clipboardDefaultAction"
     case clipboardDisabledApps = "clipboardDisabledApps"

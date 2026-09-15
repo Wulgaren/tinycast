@@ -11,6 +11,8 @@
   (the default) or copy — and ⌘↵ always does the other. ⌘1…⌘0 on a pin and a double-click go
   through the same call, so no surface can drift from the setting; ⌥↵ pastes regardless, since
   keeping the window open is a paste-only idea. The ⌘K menu puts the default first with the ↵ chip.
+  `clipboardCommandFourOpensHistory` (off by default) steals in-palette ⌘4 for opening this screen
+  instead of the fourth pin; already here, that chord is a no-op.
 - **Clipboard writes stamp a private `internalType` marker** so the poller skips Tinycast's own writes.
   If the writer and the poller ever disagree, the app re-captures its own pastes in a loop.
 - **`Model/ClipboardStore.swift` keeps to Foundation plus SQLite3 and no other app source**, so
