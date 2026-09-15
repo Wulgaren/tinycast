@@ -307,17 +307,11 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         // Handled at the panel: the field editor or a missing main menu eats these first.
         panel.onCommandShortcut = { [weak self] event in
             guard let self, Self.commandCharacter(from: event) != nil else { return false }
-            if let index = FavoriteSlots.index(forKeyCode: event.keyCode) {
-                let stealFour =
-                    index == FavoriteSlots.clipboardHistoryIndex
-                    && self.core.settings.clipboardCommandFourOpensHistory
-                    && self.core.settings.clipboardEnabled
-                if stealFour || self.core.palette.mode == .launcher
-                    || self.core.palette.mode == .clipboard
-                {
-                    self.core.palette.noteFavoriteSlot(index)
-                    return true
-                }
+            if self.core.palette.mode == .launcher || self.core.palette.mode == .clipboard,
+                let index = FavoriteSlots.index(forKeyCode: event.keyCode)
+            {
+                self.core.palette.noteFavoriteSlot(index)
+                return true
             }
             guard let character = Self.commandCharacter(from: event) else { return false }
             switch character {

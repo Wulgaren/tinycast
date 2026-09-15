@@ -10,7 +10,6 @@ struct ClipboardList: View {
     let onActivate: () -> Void
     let onActions: (ClipboardItem) -> Void
     @Environment(ClipboardStore.self) private var store
-    @Environment(AppSettings.self) private var settings
 
     private enum Row: Identifiable {
         case header(String)
@@ -39,10 +38,7 @@ struct ClipboardList: View {
                 rows.append(.header(title))
                 currentTitle = title
             }
-            let steals = settings.clipboardCommandFourOpensHistory && settings.clipboardEnabled
-            let slot =
-                item.isPinned
-                ? FavoriteSlots.digit(at: pinnedSlot, clipboardStealsFour: steals) : nil
+            let slot = item.isPinned ? FavoriteSlots.digit(at: pinnedSlot) : nil
             if item.isPinned { pinnedSlot += 1 }
             rows.append(.item(item, slot: slot))
         }

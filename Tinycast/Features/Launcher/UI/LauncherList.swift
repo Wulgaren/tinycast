@@ -18,7 +18,6 @@ struct LauncherList: View {
     /// The `Use "…" with` section, always last; nil when nothing is typed.
     var fallbacks: FallbackSection?
     @Environment(RunningAppsMonitor.self) private var runningApps
-    @Environment(AppSettings.self) private var settings
 
     /// What the fallback section draws and where its rows go, addressed by position.
     struct FallbackSection {
@@ -98,10 +97,9 @@ struct LauncherList: View {
         for app in rest { grouped[app.kind, default: []].append(app) }
         if !favorites.isEmpty {
             rows.append(.header("Favorites"))
-            let steals = settings.clipboardCommandFourOpensHistory && settings.clipboardEnabled
             rows.append(
                 contentsOf: favorites.enumerated().map {
-                    .app($1, slot: FavoriteSlots.digit(at: $0, clipboardStealsFour: steals))
+                    .app($1, slot: FavoriteSlots.digit(at: $0))
                 })
         }
         // Publication order, so rows match the flat index.

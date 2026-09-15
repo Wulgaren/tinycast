@@ -1065,14 +1065,6 @@ struct RootPaletteView: View {
     /// Dispatches the Cmd+number slot action to the active screen.
     private func activateFavoriteSlotShortcut() {
         guard let index = vm.favoriteSlotIndex else { return }
-        if settings.clipboardCommandFourOpensHistory, settings.clipboardEnabled,
-            index == FavoriteSlots.clipboardHistoryIndex
-        {
-            if vm.mode != .clipboard {
-                core.paletteCoordinator.showPalette(mode: .clipboard)
-            }
-            return
-        }
         if let launcher = screen as? LauncherScreen {
             _ = launcher.launchFavorite(at: index)
             return
@@ -1300,7 +1292,6 @@ private struct CompactFavoritesRow: View {
     let showsOverflow: Bool
     let onLaunch: (AppEntry) -> Void
     let onOverflow: () -> Void
-    @Environment(AppSettings.self) private var settings
 
     var body: some View {
         HStack(spacing: Theme.Spacing.xs) {
@@ -1330,9 +1321,7 @@ private struct CompactFavoritesRow: View {
     }
 
     private func help(for app: AppEntry, at index: Int) -> String {
-        let steals = settings.clipboardCommandFourOpensHistory && settings.clipboardEnabled
-        guard let digit = FavoriteSlots.digit(at: index, clipboardStealsFour: steals)
-        else { return app.name }
+        guard let digit = FavoriteSlots.digit(at: index) else { return app.name }
         return "\(app.name)  ⌘\(digit)"
     }
 }
