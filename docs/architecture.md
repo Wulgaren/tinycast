@@ -26,7 +26,9 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ ClipboardStore · RaycastDecoder · Scrypt · AppSettingsKey ·                │
 │ SettingsBackupCoverage · MeetingLink · MeetingEvent · UpcomingWindow ·     │
 │ MeetingDay · MenuBarSummary · AutoJoinPolicy · EventDraft ·                │
-│ SupportReminderSchedule                                                    │
+│ SupportReminderSchedule ·                                                    │
+│ MenuSearch{Item,Shortcut,Query,TreeNode,SnapshotPolicy,Target} ·           │
+│ WindowSwitch{Entry,Order,Query}                                            │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ consumed by
 ┌─ EFFECT ─────────────────────────▼─────────────────────────────────────────┐
@@ -38,11 +40,12 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ TextInjector · SnippetKeywordListener · NotesRepository ·                   │
 │ CurrencyRateStore · Paster · HotKeyCenter · HyperKeyTap ·                  │
 │ DoubleTapMonitor · RunningAppsMonitor · CalendarStore · MeetingLauncher ·  │
-│ MeetingClock · CameraSession · SupportReminderStore                        │
+│ MeetingClock · CameraSession · SupportReminderStore · AXMenuAccess ·       │
+│ WindowZOrder · WindowSwitchSweep                                             │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 38 @MainActor @Observable stores, sessions, indices and State types        │
+│ 39 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -84,7 +87,7 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`,
 `HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
-(`AppSettings`, `PaletteState`, `FileSearchSession`, `UninstallSession`,
+(`AppSettings`, `PaletteState`, `FileSearchSession`, `MenuSearchSession`, `UninstallSession`,
 `CustomCommandArgumentSession`, `MeetingClock`), `NotesStore`, the twenty feature coordinators, and the
 window controllers.
 
@@ -156,7 +159,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-38 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+39 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:
@@ -213,9 +216,10 @@ Tinycast/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ Notes/ Quicklinks/ AppleShortcuts/
-    Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/ WindowManagement/ Onboarding/
-    Updates/ Support/ AI/ Settings/
+    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ MenuSearch/
+    WindowSwitcher/ ICloudTabs/ Notes/ Quicklinks/ AppleShortcuts/ Snippets/
+    Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/ WindowManagement/
+    Onboarding/ Updates/ Support/ AI/ Settings/
     Extensions/
         Model/      pure — the harness inputs
         Service/    effects — stores, monitors, runners, AppKit glue

@@ -22,6 +22,7 @@ struct SettingsDetailView: View {
             case .iCloudTabs: ICloudTabsSettingsView()
             case .notes: NotesSettingsView()
             case .snippets: SnippetsSettingsView()
+            case .navigation: NavigationSettingsView()
             case .windowManagement: WindowManagementSettingsView()
             case .clipboard: ClipboardSettingsView()
             case .emoji: EmojiSettingsView()

@@ -110,7 +110,8 @@ enum SettingsSearchCatalog {
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings
         + systemActions + commands + quicklinks + appleShortcuts + fallbacks + ai + quickActions
-        + fileSearch + iCloudTabs + notes + snippets + windowManagement + clipboard + emoji + calendar
+        + fileSearch + iCloudTabs + notes + snippets + navigation + windowManagement + clipboard
+        + emoji + calendar
         + extensions + permissions + backup + about
 
     private static let general: [SettingsSearchEntry] = [
@@ -133,6 +134,9 @@ enum SettingsSearchCatalog {
         .init(
             .generalAppearance, "Theme",
             keywords: ["dark", "light", "mode", "appearance"]),
+        .init(
+            .generalAppearance, "Interface size",
+            keywords: ["text size", "font size", "scale", "zoom", "bigger", "larger", "legible"]),
         .init(
             .generalAppearance, "Background transparency",
             keywords: ["glass", "opacity", "blur", "translucency", "reset"]),
@@ -223,6 +227,9 @@ enum SettingsSearchCatalog {
             .quicklinksQuicklinks, "Add Quicklink",
             keywords: ["new", "url", "bookmark", "alias"]),
         .init(
+            group: .quicklinksCommands, "Quicklink commands",
+            keywords: ["shortcut", "launcher", "search", "import", "export"]),
+        .init(
             .quicklinksBehaviour, "Open in a new window",
             keywords: ["browser", "tab"]),
         .init(
@@ -267,7 +274,7 @@ enum SettingsSearchCatalog {
                 "base url", "openai", "anthropic", "ollama"
             ]),
         .init(.aiDefault, "Default model", keywords: ["llm", "gpt", "claude"]),
-        .init(.aiDefault, "Reasoning effort", keywords: ["thinking", "effort"]),
+        .init(.aiDefault, "Reasoning effort", keywords: ["thinking", "effort", "deepseek"]),
         .init(.aiChat, "Web search", keywords: ["browse", "internet"]),
         .init(
             .aiConversations, "Opens to",
@@ -364,14 +371,32 @@ enum SettingsSearchCatalog {
             .snippetsSnippets, "Enable snippets",
             keywords: ["expansion", "keystrokes", "accessibility"]),
         .init(
-            .snippetsGlobalShortcut, "Search Snippets",
-            keywords: ["hotkey", "browser"]),
+            group: .snippetsCommands, "Snippet commands",
+            keywords: ["shortcut", "hotkey", "launcher", "browser"]),
         .init(
             .snippetsLibrary, "New Snippet",
             keywords: ["add", "keyword", "expansion"]),
         .init(
             .snippetsLibrary, "Snippets Folder",
             keywords: ["reveal", "finder", "markdown", "files"])
+    ]
+
+    private static let navigation: [SettingsSearchEntry] = [
+        .init(
+            pane: .navigation,
+            keywords: ["window", "switch", "menu bar", "focus", "raise"]),
+        .init(
+            .navigationNavigation, "Enable navigation",
+            keywords: ["window switcher", "menu bar", "accessibility"]),
+        .init(
+            group: .navigationCommands, "Navigation commands",
+            keywords: ["shortcut", "hotkey", "alias", "launcher"]),
+        .init(
+            .navigationMenuSearch, "Show Apple menu items",
+            keywords: ["apple menu", "about this mac", "recent items", "sleep", "logo"]),
+        .init(
+            .navigationMenuSearch, "Disabled Applications",
+            keywords: ["exclude", "password manager", "ignore", "privacy", "menu bar"])
     ]
 
     private static let windowManagement: [SettingsSearchEntry] = [
@@ -390,6 +415,9 @@ enum SettingsSearchCatalog {
         .init(
             group: .windowManagementOptions, "Window commands",
             keywords: ["shortcut", "left half", "maximize", "center"]),
+        .init(
+            group: .windowManagementLayoutCommands, "Layout commands",
+            keywords: ["shortcut", "launcher", "create layout", "capture"]),
         .init(
             group: .windowManagementLayouts, "Window Layouts",
             keywords: [
@@ -415,10 +443,10 @@ enum SettingsSearchCatalog {
             .clipboardClipboard, "Enable Clipboard History",
             keywords: ["disable", "turn off", "monitor", "record", "privacy"]),
         .init(
-            .clipboardGlobalShortcuts, "Clipboard History",
-            keywords: ["hotkey", "paste", "browser"]),
+            group: .clipboardCommands, "Clipboard commands",
+            keywords: ["shortcut", "hotkey", "launcher", "paste", "browser"]),
         .init(
-            .clipboardGlobalShortcuts, "Open with ⌘4 in palette",
+            .clipboardCommands, "Open with ⌘4 in palette",
             keywords: ["favorite", "slot", "command four", "hotkey", "shortcut"]),
         .init(
             .clipboardHistory, "Keep history for",
@@ -442,8 +470,8 @@ enum SettingsSearchCatalog {
             pane: .emoji,
             keywords: ["picker", "character", "unicode", "smiley"]),
         .init(
-            .emojiGlobalShortcuts, "Emoji & Symbols",
-            keywords: ["hotkey", "picker"]),
+            group: .emojiCommands, "Emoji commands",
+            keywords: ["shortcut", "hotkey", "launcher", "picker"]),
         .init(
             .emojiAppearance, "Emoji Skin Tone",
             keywords: ["colour", "color", "fitzpatrick", "default"])
@@ -486,6 +514,9 @@ enum SettingsSearchCatalog {
         .init(
             .calendarMenuBar, "Hide Current Event",
             keywords: ["started", "time left", "menubar"]),
+        .init(
+            group: .calendarCommands, "Calendar commands",
+            keywords: ["shortcut", "launcher", "join", "schedule", "create event"]),
         .init(
             group: .calendarCalendars, "Calendars",
             keywords: ["accounts", "sources", "choose", "icloud", "google"])

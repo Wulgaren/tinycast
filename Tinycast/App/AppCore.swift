@@ -43,6 +43,8 @@ final class AppCore {
     let palette = PaletteState()
     let fileSearch = FileSearchSession()
     let iCloudTabs = ICloudTabsSession()
+    let menuSearch = MenuSearchSession()
+    let windowSwitch = WindowSwitchSession()
     let activationPolicy = ActivationPolicy()
     let uninstall = UninstallSession()
     let customCommandArguments = CustomCommandArgumentSession()
@@ -83,7 +85,7 @@ final class AppCore {
 
     @ObservationIgnored private(set) lazy var paletteCoordinator = PaletteCoordinator(
         palette: palette, settings: settings, appIndex: appIndex,
-        fileSearch: fileSearch,
+        fileSearch: fileSearch, menuSearch: menuSearch, windowSwitch: windowSwitch,
         windowController: windowController)
     /// Its own window and lifecycle: neither coordinator shows or closes the other's surface.
     @ObservationIgnored private(set) lazy var settingsCoordinator = SettingsCoordinator(core: self)
@@ -128,6 +130,8 @@ final class AppCore {
         windowCommandCoordinator: windowCommandCoordinator,
         windowLayoutCoordinator: windowLayoutCoordinator,
         snippetCoordinator: snippetCoordinator, fileSearchCoordinator: fileSearchCoordinator,
+        menuSearchCoordinator: menuSearchCoordinator,
+        windowSwitchCoordinator: windowSwitchCoordinator,
         notesCoordinator: notesCoordinator, extensionCoordinator: extensionCoordinator,
         calendarCoordinator: calendarCoordinator,
         appleShortcutCoordinator: appleShortcutCoordinator,
@@ -151,6 +155,12 @@ final class AppCore {
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var fileSearchCoordinator = FileSearchCoordinator(
         settings: settings, appIndex: appIndex, session: fileSearch, palette: palette,
+        paletteCoordinator: paletteCoordinator, windowController: windowController, core: self)
+    @ObservationIgnored private(set) lazy var menuSearchCoordinator = MenuSearchCoordinator(
+        settings: settings, appIndex: appIndex, session: menuSearch, palette: palette,
+        paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var windowSwitchCoordinator = WindowSwitchCoordinator(
+        settings: settings, appIndex: appIndex, session: windowSwitch, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var iCloudTabsCoordinator = ICloudTabsCoordinator(
         settings: settings, appIndex: appIndex, session: iCloudTabs, palette: palette,
@@ -175,7 +185,7 @@ final class AppCore {
     @ObservationIgnored private lazy var windowController = PaletteWindowController(core: self)
     @ObservationIgnored private lazy var messageHUD = MessageHUDController(settings: settings)
     /// Every confirmation, report and prompt; it also stops a held hotkey stacking them.
-    private let dialogs = DialogController()
+    @ObservationIgnored private lazy var dialogs = DialogController(settings: settings)
     private let healthTicker = HealthTicker()
 
     private init() {
@@ -218,6 +228,8 @@ final class AppCore {
             extensions.start(appIndex: appIndex, coordinator: extensionCoordinator)
             extensionCoordinator.applyEnabled()
             fileSearchCoordinator.applyEnabled()
+            windowSwitchCoordinator.applyEnabled()
+            menuSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
             iCloudTabsCoordinator.applyEnabled()
             notesCoordinator.applyEnabled()
@@ -349,11 +361,19 @@ final class AppCore {
         switch ExtensionOAuthSession.handleCallbackURL(url) {
         case .delivered:
             paletteCoordinator.showPalette(mode: .extensionCommand, restoreAnyMode: true)
+            return
         case .expired:
             showMessage("Sign-in expired — run the command again", tone: .danger)
+            return
         case .ignored:
             break
         }
+        guard ExtensionDeepLink.claims(url) else { return }
+        guard let link = ExtensionDeepLink.parse(url: url) else {
+            paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
+            return
+        }
+        extensionCoordinator.runDeepLink(link)
     }
 
     /// The store-backed half of the conflict message; `HotKeyManager` names the catalogs itself.
@@ -451,10 +471,11 @@ final class AppCore {
     }
 
     /// Permissive guardrails: the text transformed is the reader's own, which `.default` refuses.
-    func quickActionProvider() throws -> any AIProvider {
+    func quickActionProvider(for action: QuickAction) throws -> any AIProvider {
         quickActionSettings.repairModel(
             against: aiSettings.connections, fallback: aiSettings.defaultModel)
-        guard let selection = quickActionSettings.model ?? aiSettings.defaultModel else {
+        guard let selection = quickActionSettings.model(for: action) ?? aiSettings.defaultModel
+        else {
             throw AIProviderError.unavailable("Choose a model in Settings \u{2192} Quick Actions.")
         }
         return try AIProviderFactory.make(
@@ -497,6 +518,13 @@ final class AppCore {
             { _ = $0.clipboardTextSearchEnabled }, reproject: { $0.applyClipboardTextSearch() })
         track({ _ = $0.fileSearchEnabled }, reproject: { $0.fileSearchCoordinator.applyEnabled() })
         track({ _ = $0.iCloudTabsEnabled }, reproject: { $0.iCloudTabsCoordinator.applyEnabled() })
+        // Two features, one switch: each coordinator gates only its own command and mode.
+        track(
+            { _ = $0.navigationEnabled },
+            reproject: {
+                $0.windowSwitchCoordinator.applyEnabled()
+                $0.menuSearchCoordinator.applyEnabled()
+            })
         track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
         track({ _ = $0.aiEnabled }, reproject: { $0.aiChatCoordinator.applyEnabled() })
         track(
@@ -534,6 +562,7 @@ final class AppCore {
             { _ = $0.snippetsShowInLauncher },
             reproject: { $0.snippetCoordinator.applySnippetsLauncherPresence() })
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
+        track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
     }
 
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.

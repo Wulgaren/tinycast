@@ -5,6 +5,8 @@ struct QuicklinkListScreen: PaletteScreen {
     let store: QuicklinkStore
     let core: AppCore
     let vm: PaletteState
+
+    private var metrics: InterfaceMetrics { core.settings.interfaceSize.metrics }
     let openActions: () -> Void
     /// Opens the palette's own menu for an `options=` field, keyed by argument name.
     let openArgumentOptions: (String) -> Void
@@ -57,15 +59,23 @@ struct QuicklinkListScreen: PaletteScreen {
         return true
     }
 
+    func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool {
+        switch shortcut {
+        case .commandDelete: return delete(at: selection)
+        case .pin: return pin(at: selection)
+        default: return false
+        }
+    }
+
     /// ⌘. — mirrors the Actions menu row; pinning lifts the row into the Pinned section.
-    func pin(at selection: Int) -> Bool {
+    private func pin(at selection: Int) -> Bool {
         guard let quicklink = quicklink(at: selection) else { return false }
         core.quicklinkCoordinator.toggleQuicklinkPinned(id: quicklink.id)
         return true
     }
 
     /// ⌘⌫ — deletion honours the "confirm before deleting" setting inside `AppCore`.
-    func delete(at selection: Int) -> Bool {
+    private func delete(at selection: Int) -> Bool {
         guard let quicklink = quicklink(at: selection) else { return false }
         Task { await core.quicklinkCoordinator.deleteQuicklink(id: quicklink.id) }
         return true
@@ -94,7 +104,7 @@ struct QuicklinkListScreen: PaletteScreen {
                         openActions()
                     }
                 )
-                .frame(width: Theme.Size.clipboardListWidth)
+                .frame(width: metrics.size.clipboardListWidth)
                 Rectangle().fill(Theme.Colors.separator).frame(width: Theme.Size.hairline)
                 QuicklinkPreview(quicklink: selected)
             }
