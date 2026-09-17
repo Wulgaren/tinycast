@@ -79,11 +79,12 @@ depends on neither, and Quick Actions carries its own route rather than borrowin
   servers, browser integration, slash commands or persisted session — but never `--bare`, which reads
   neither OAuth nor the keychain and so refuses the very sign-in this route reuses. OpenCode runs `--pure` with
   deny-all permissions, disabled sharing and a private working directory; Tinycast deletes the session
-  recorded in its JSON stream after each turn. Cursor runs `agent -p --mode ask` with `--trust` against
+  recorded in its JSON stream before the turn finishes. Cursor runs `agent -p --mode ask` with `--trust` against
   Tinycast's private workspace and never `--force` / `--yolo` / `--approve-mcps`. Ask mode blocks edits;
   Tinycast does not strip the user's Cursor MCP config (project and global configs merge, and the CLI has
-  no empty-config flag), so isolation is ask-mode plus refusing MCP auto-approval. After the turn Tinycast
-  deletes the local Cursor chat (the CLI has no delete-chat). None of these routes offer images or web search.
+  no empty-config flag), so isolation is ask-mode plus refusing MCP auto-approval. The turn finishes only
+  after Tinycast deletes the local Cursor chat for that reply (the CLI has no delete-chat). None of these
+  routes offer images or web search.
 - **Chat is a palette screen, not another window** — including its lifetime. The launcher command
   enters `.ai`; its search field is the composer, and the shared footer's primary pill is Return's
   job: Send (`↵`), or Stop (`↵`) while a response streams — followed by Actions (`⌘K`), which owns
@@ -348,9 +349,11 @@ Tinycast's instructions and bounded conversation history as stdin, consumes newl
 and never puts prompt text on the process command line. Claude uses stream JSON, `--effort` and no
 session persistence. OpenCode runs pure with an inline deny-all configuration and passes the selected
 model variant through `--variant`; it captures the returned session identifier, then calls
-`opencode session delete` after the process exits. Cursor runs ask mode with `--trust`,
+`opencode session delete` after the process exits — and yields `.finished` only once that delete
+returns. Cursor runs ask mode with `--trust`,
 `stream-json` and `--stream-partial-output`, never `--force` / `--yolo` / `--approve-mcps`, then removes the
-local chat under `~/.cursor/chats/<workspace>/<session_id>` because the CLI has no delete-chat.
+local chat under `~/.cursor/chats/<workspace>/<session_id>` because the CLI has no delete-chat, and
+finishes the stream only after that removal.
 Cancellation terminates the child process; only one installed-CLI turn can own a runner at a time.
 
 ## Web search and attachments

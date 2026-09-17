@@ -121,9 +121,9 @@ struct InstalledAITests {
             configuration.contains("\"permission\":\"deny\"")
                 && configuration.contains("\"share\":\"disabled\""),
             "OpenCode receives deny-all permissions and disabled sharing")
-        let deleted = await fixture.awaitFile("deleted.log", containing: "ses_stub")
-        if !deleted { print("OpenCode invocations: \(fixture.read("opencode-args.log"))") }
-        expect(deleted, "OpenCode deletes the session created for the reply")
+        expect(
+            fixture.read("deleted.log").contains("ses_stub"),
+            "OpenCode deletes the session created for the reply")
         fixture.expectPrompt("opencode-prompt.log")
     }
 
@@ -164,8 +164,9 @@ struct InstalledAITests {
             "Cursor never auto-approves the user's MCP servers")
         fixture.expectPrompt("agent-prompt.log")
         let chat = fixture.cursorChats.appending(path: "ws/ses_cursor", directoryHint: .isDirectory)
-        let deleted = await fixture.awaitRemoval(chat)
-        expect(deleted, "Cursor deletes the local chat created for the reply")
+        expect(
+            !FileManager.default.fileExists(atPath: chat.path),
+            "Cursor deletes the local chat created for the reply")
     }
 
     private static func oversizedCompleteFrameFailsTheTurn(_ fixture: Fixture) async {
@@ -298,24 +299,6 @@ private final class Fixture {
 
     func read(_ name: String) -> String {
         (try? String(contentsOf: root.appending(path: name), encoding: .utf8)) ?? ""
-    }
-
-    func awaitFile(_ name: String, containing value: String) async -> Bool {
-        let deadline = ContinuousClock.now + .seconds(5)
-        while ContinuousClock.now < deadline {
-            if read(name).contains(value) { return true }
-            try? await Task.sleep(for: .milliseconds(10))
-        }
-        return read(name).contains(value)
-    }
-
-    func awaitRemoval(_ url: URL) async -> Bool {
-        let deadline = ContinuousClock.now + .seconds(5)
-        while ContinuousClock.now < deadline {
-            if !FileManager.default.fileExists(atPath: url.path) { return true }
-            try? await Task.sleep(for: .milliseconds(10))
-        }
-        return !FileManager.default.fileExists(atPath: url.path)
     }
 
     func tearDown() {
