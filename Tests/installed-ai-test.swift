@@ -22,9 +22,13 @@ struct InstalledAITests {
         }
         defer { fixture.tearDown() }
         openCodeCatalogCarriesModelVariants()
+        cursorCatalogParsesListModels()
+        statusJSONRecognizesLogin()
         versionKeepsPrereleaseAndBuild()
         await openCodeRunsWithoutToolsAndDeletesItsSession(fixture)
         await claudeRunsWithoutToolsOrHistory(fixture)
+        await cursorRunsAskModeWithoutForce(fixture)
+        await cursorDiscoveryRequiresLoginAndListsModels(fixture)
         claudeMCPConfigNamesNoServers(fixture)
 
         print("\(passes) passed, \(failures) failed")
@@ -52,6 +56,36 @@ struct InstalledAITests {
             models.first?.efforts.map(\.id) == ["low", "high"],
             "OpenCode discovery keeps each model's supported reasoning variants")
         expect(models.last?.efforts.isEmpty == true, "models without variants show no effort picker")
+    }
+
+    private static func cursorCatalogParsesListModels() {
+        let output = """
+            Available models
+
+            auto - Auto (current, default)
+            composer-2.5 - Composer 2.5
+            gpt-5.2 - GPT-5.2
+            """
+        let models = InstalledAIModel.cursorCatalog(output)
+        expect(
+            models.map(\.id) == ["auto", "composer-2.5", "gpt-5.2"],
+            "Cursor discovery keeps each --list-models id")
+        expect(
+            models.map(\.name) == ["Auto (current, default)", "Composer 2.5", "GPT-5.2"],
+            "Cursor discovery keeps each --list-models display name")
+        expect(models.allSatisfy(\.efforts.isEmpty), "Cursor model ids carry effort; no separate picker")
+    }
+
+    private static func statusJSONRecognizesLogin() {
+        expect(
+            InstalledAIProbe.loggedIn(inStatusJSON: #"{"loggedIn":true}"#),
+            "Claude auth status JSON reports login")
+        expect(
+            InstalledAIProbe.loggedIn(inStatusJSON: #"{"isAuthenticated":true}"#),
+            "Cursor status JSON reports login")
+        expect(
+            !InstalledAIProbe.loggedIn(inStatusJSON: #"{"status":"logged_out"}"#),
+            "unsigned-in status JSON is not treated as logged in")
     }
 
     private static func versionKeepsPrereleaseAndBuild() {
@@ -109,6 +143,35 @@ struct InstalledAITests {
         fixture.expectPrompt("claude-prompt.log")
     }
 
+    private static func cursorRunsAskModeWithoutForce(_ fixture: Fixture) async {
+        let events = await fixture.events(kind: .cursor, model: "composer-2.5", effort: nil)
+        expect(events.contains(.text("Cursor ")), "Cursor delta text reaches the provider stream")
+        expect(!events.contains(.text("Cursor reply")), "Cursor skips buffered assistant flushes")
+        expect(events.last == .finished, "Cursor finishes the provider stream")
+        let arguments = fixture.read("agent-args.log")
+        for flag in ["-p", "--mode", "ask", "--trust", "--workspace", "--model", "composer-2.5",
+            "--output-format", "stream-json", "--stream-partial-output"]
+        {
+            expect(arguments.contains(flag), "Cursor runs with \(flag)")
+        }
+        expect(!arguments.contains("--force"), "Cursor never runs with --force")
+        expect(!arguments.contains("--yolo"), "Cursor never runs with --yolo")
+        fixture.expectPrompt("agent-prompt.log")
+        let chat = fixture.cursorChats.appending(path: "ws/ses_cursor", directoryHint: .isDirectory)
+        let deleted = await fixture.awaitRemoval(chat)
+        expect(deleted, "Cursor deletes the local chat created for the reply")
+    }
+
+    private static func cursorDiscoveryRequiresLoginAndListsModels(_ fixture: Fixture) async {
+        let manager = InstalledAIManager(supportDirectory: fixture.root)
+        await manager.refresh(kind: .cursor).value
+        let status = manager.status(for: .cursor)
+        expect(status.isReady, "Cursor discovery is ready after status and --list-models")
+        expect(
+            status.models.map(\.id) == ["auto", "composer-2.5"],
+            "Cursor discovery keeps the --list-models catalog")
+    }
+
     /// The CLI rejects a bare `{}` before the turn starts, and a stub argv would never notice.
     private static func claudeMCPConfigNamesNoServers(_ fixture: Fixture) {
         let argv = fixture.arguments("claude-args.log")
@@ -129,17 +192,20 @@ struct InstalledAITests {
 private final class Fixture {
     let root: URL
     let workspace: URL
+    let cursorChats: URL
     let executables: [InstalledAIKind: URL]
 
     init?() {
         root = URL(fileURLWithPath: NSTemporaryDirectory())
             .appending(path: "installed-ai-\(UUID().uuidString)", directoryHint: .isDirectory)
         workspace = root.appending(path: "workspace", directoryHint: .isDirectory)
+        cursorChats = root.appending(path: "cursor-chats", directoryHint: .isDirectory)
         let bin = root.appending(path: "bin", directoryHint: .isDirectory)
         do {
             try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: cursorChats, withIntermediateDirectories: true)
             var values: [InstalledAIKind: URL] = [:]
-            for kind in [InstalledAIKind.claude, .openCode] {
+            for kind in InstalledAIKind.managedCLIKinds {
                 let executable = bin.appending(path: kind.command)
                 try FileManager.default.copyItem(
                     at: URL(fileURLWithPath: "Tests/ai-fixtures/installed-cli-stub.js"),
@@ -152,6 +218,7 @@ private final class Fixture {
             let inheritedPath = ProcessInfo.processInfo.environment["PATH"] ?? ""
             setenv("PATH", bin.path + ":" + inheritedPath, 1)
             setenv("TC_INSTALLED_STUB_ROOT", root.path, 1)
+            setenv("TC_CURSOR_CHATS_ROOT", cursorChats.path, 1)
         } catch {
             print("fixture setup failed: \(error)")
             return nil
@@ -208,6 +275,15 @@ private final class Fixture {
             try? await Task.sleep(for: .milliseconds(10))
         }
         return read(name).contains(value)
+    }
+
+    func awaitRemoval(_ url: URL) async -> Bool {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while ContinuousClock.now < deadline {
+            if !FileManager.default.fileExists(atPath: url.path) { return true }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        return !FileManager.default.fileExists(atPath: url.path)
     }
 
     func tearDown() {

@@ -110,7 +110,7 @@ struct AISettingsView: View {
     private var providerSummary: String {
         var providers: [String] = []
         if subscription.isConnected { providers.append("Codex") }
-        for kind in [InstalledAIKind.claude, .openCode]
+        for kind in InstalledAIKind.managedCLIKinds
         where installedAI.status(for: kind).isReady {
             providers.append(kind.title)
         }
@@ -258,12 +258,13 @@ struct AISettingsView: View {
             }
             installedConnection(.claude)
             installedConnection(.openCode)
+            installedConnection(.cursor)
         } header: {
             SettingsSectionHeader(.aiInstalledAI)
         } footer: {
             Text(
-                "Tinycast uses the Codex, Claude and OpenCode commands already installed and signed "
-                    + "in on this Mac. Tinycast never stores or asks for their API keys."
+                "Tinycast uses the Codex, Claude, OpenCode and Cursor commands already installed and "
+                    + "signed in on this Mac. Tinycast never stores or asks for their API keys."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -500,7 +501,7 @@ struct AISettingsView: View {
             codexModels: enabledProviders.contains(.codex) ? subscription.models : [],
             isUnavailable: !enabledProviders.contains(.codex) || subscription.phase == .signedOut
                 || subscription.phase.isUnavailable)
-        for kind in [InstalledAIKind.claude, .openCode] {
+        for kind in InstalledAIKind.managedCLIKinds {
             let status = installedAI.status(for: kind)
             settings.reconcile(
                 installed: kind,

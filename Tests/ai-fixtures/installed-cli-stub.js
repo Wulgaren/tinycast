@@ -5,16 +5,36 @@ const path = require("node:path");
 
 const root = process.env.TC_INSTALLED_STUB_ROOT;
 const command = path.basename(process.argv[1]);
+const args = process.argv.slice(2);
 
 function record(name, value) {
   fs.appendFileSync(path.join(root, name), value + "\n");
 }
 
-record(command + "-args.log", JSON.stringify(process.argv.slice(2)));
+record(command + "-args.log", JSON.stringify(args));
 
-if (command === "opencode" && process.argv.slice(2, 4).join(" ") === "session delete") {
-  record("deleted.log", process.argv[4]);
+if (command === "opencode" && args.slice(0, 2).join(" ") === "session delete") {
+  record("deleted.log", args[2]);
   process.exit(0);
+}
+
+if (command === "agent") {
+  if (args.includes("--version")) {
+    console.log("2026.1.0");
+    process.exit(0);
+  }
+  if (args[0] === "status") {
+    console.log(JSON.stringify({ isAuthenticated: true }));
+    process.exit(0);
+  }
+  if (args.includes("--list-models")) {
+    console.log(`Available models
+
+auto - Auto (current, default)
+composer-2.5 - Composer 2.5
+`);
+    process.exit(0);
+  }
 }
 
 const prompt = fs.readFileSync(0, "utf8");
@@ -29,6 +49,31 @@ if (command === "opencode") {
   console.log(JSON.stringify({
     type: "step_finish", sessionID: "ses_stub",
     part: { tokens: { input: 9, output: 2 } }
+  }));
+} else if (command === "agent") {
+  const chatsRoot = process.env.TC_CURSOR_CHATS_ROOT;
+  if (chatsRoot) {
+    fs.mkdirSync(path.join(chatsRoot, "ws", "ses_cursor"), { recursive: true });
+  }
+  console.log(JSON.stringify({
+    type: "system", subtype: "init", session_id: "ses_cursor"
+  }));
+  console.log(JSON.stringify({
+    type: "assistant",
+    timestamp_ms: 1,
+    message: { content: [{ type: "text", text: "Cursor " }] }
+  }));
+  console.log(JSON.stringify({
+    type: "assistant",
+    model_call_id: "call_1",
+    message: { content: [{ type: "text", text: "Cursor reply" }] }
+  }));
+  console.log(JSON.stringify({
+    type: "assistant",
+    message: { content: [{ type: "text", text: "Cursor reply" }] }
+  }));
+  console.log(JSON.stringify({
+    type: "result", subtype: "success", result: "Cursor reply"
   }));
 } else {
   console.log(JSON.stringify({
