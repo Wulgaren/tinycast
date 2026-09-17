@@ -29,6 +29,7 @@ struct InstalledAITests {
         await claudeRunsWithoutToolsOrHistory(fixture)
         await cursorRunsAskModeWithoutForce(fixture)
         await cursorDiscoveryRequiresLoginAndListsModels(fixture)
+        await oversizedCompleteFrameFailsTheTurn(fixture)
         claudeMCPConfigNamesNoServers(fixture)
 
         print("\(passes) passed, \(failures) failed")
@@ -158,10 +159,23 @@ struct InstalledAITests {
         }
         expect(!arguments.contains("--force"), "Cursor never runs with --force")
         expect(!arguments.contains("--yolo"), "Cursor never runs with --yolo")
+        expect(
+            !arguments.contains("--approve-mcps"),
+            "Cursor never auto-approves the user's MCP servers")
         fixture.expectPrompt("agent-prompt.log")
         let chat = fixture.cursorChats.appending(path: "ws/ses_cursor", directoryHint: .isDirectory)
         let deleted = await fixture.awaitRemoval(chat)
         expect(deleted, "Cursor deletes the local chat created for the reply")
+    }
+
+    private static func oversizedCompleteFrameFailsTheTurn(_ fixture: Fixture) async {
+        setenv("TC_INSTALLED_MAX_LINE_BYTES", "64", 1)
+        defer { unsetenv("TC_INSTALLED_MAX_LINE_BYTES") }
+        let error = await fixture.streamError(
+            kind: .claude, model: "oversized-frame", effort: nil)
+        expect(
+            error?.contains("oversized response") == true,
+            "a complete NDJSON frame over the byte limit fails the turn")
     }
 
     private static func cursorDiscoveryRequiresLoginAndListsModels(_ fixture: Fixture) async {
@@ -232,13 +246,6 @@ private final class Fixture {
         let provider = InstalledCLIProvider(
             kind: kind, executable: kind == .openCode ? nil : executable,
             model: model, effort: effort, workspace: workspace)
-        let request = AIRequest(
-            instructions: "Follow the custom instruction.",
-            messages: [
-                AIMessage(role: .user, text: "First question"),
-                AIMessage(role: .assistant, text: "First answer"),
-                AIMessage(role: .user, text: "Final question")
-            ])
         do {
             var events: [AIStreamEvent] = []
             for try await event in provider.stream(request) { events.append(event) }
@@ -247,6 +254,29 @@ private final class Fixture {
             print("\(kind.title) stream failed: \(error)")
             return []
         }
+    }
+
+    func streamError(kind: InstalledAIKind, model: String, effort: String?) async -> String? {
+        guard let executable = executables[kind] else { return nil }
+        let provider = InstalledCLIProvider(
+            kind: kind, executable: kind == .openCode ? nil : executable,
+            model: model, effort: effort, workspace: workspace)
+        do {
+            for try await _ in provider.stream(request) {}
+            return nil
+        } catch {
+            return String(describing: error)
+        }
+    }
+
+    private var request: AIRequest {
+        AIRequest(
+            instructions: "Follow the custom instruction.",
+            messages: [
+                AIMessage(role: .user, text: "First question"),
+                AIMessage(role: .assistant, text: "First answer"),
+                AIMessage(role: .user, text: "Final question")
+            ])
     }
 
     func expectPrompt(_ name: String) {

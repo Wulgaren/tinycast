@@ -94,8 +94,9 @@ can use them with the account you are signed in to. **Tinycast never asks for or
 Each one has its own switch, and all four ship off. The pane shows whether each is ready, missing,
 or needs you to sign in. It links to the install page and can copy the sign-in command for you.
 
-Tinycast uses them as plain chat. Their tools, file access and shell access are switched off, and
-any saved session is deleted after each reply.
+Tinycast uses them as plain chat. Claude and OpenCode run with tools, file access and shell access
+switched off. Cursor runs in Ask mode against Tinycast's private workspace: read-only exploration,
+no edits, and no MCP auto-approval. Any saved session is deleted after each reply.
 
 ### API connections
 

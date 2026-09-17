@@ -29,9 +29,17 @@ private final class InstalledCLITurnRunner {
         "plan":{"permission":"deny"}}}
         """
 
-    private static let maximumPartialLineBytes = 8 * 1_048_576
     private static let claudeManagedMCPConfig =
         "/Library/Application Support/ClaudeCode/managed-mcp.json"
+
+    private static var maximumPartialLineBytes: Int {
+        if let raw = ProcessInfo.processInfo.environment["TC_INSTALLED_MAX_LINE_BYTES"],
+            let value = Int(raw), value > 0
+        {
+            return value
+        }
+        return 8 * 1_048_576
+    }
 
     private final class TurnToken: Sendable {}
 
@@ -261,6 +269,10 @@ private final class InstalledCLITurnRunner {
         outputBuffer.append(data)
         while let newline = outputBuffer.firstIndex(of: 0x0A) {
             let line = outputBuffer[..<newline]
+            if line.count > Self.maximumPartialLineBytes {
+                fail(kind.title + " returned an oversized response.")
+                return
+            }
             outputBuffer.removeSubrange(...newline)
             guard !line.isEmpty else { continue }
             apply(InstalledAIStreamDecoder.decode(Data(line), kind: kind))

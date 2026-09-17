@@ -41,6 +41,16 @@ const prompt = fs.readFileSync(0, "utf8");
 record(command + "-prompt.log", prompt);
 record(command + "-environment.log", process.env.OPENCODE_CONFIG_CONTENT ?? "");
 
+const modelIndex = args.indexOf("--model");
+const model = modelIndex >= 0 ? args[modelIndex + 1] : "";
+if (model === "oversized-frame") {
+  const limit = Number(process.env.TC_INSTALLED_MAX_LINE_BYTES || 8 * 1_048_576);
+  // One byte past the runner's complete-frame limit, terminated so the
+  // partial-line guard never sees it.
+  process.stdout.write("x".repeat(limit + 1) + "\n");
+  process.exit(0);
+}
+
 if (command === "opencode") {
   console.log(JSON.stringify({ type: "step_start", sessionID: "ses_stub", part: {} }));
   console.log(JSON.stringify({
