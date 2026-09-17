@@ -96,7 +96,8 @@ or needs you to sign in. It links to the install page and can copy the sign-in c
 
 Tinycast uses them as plain chat. Claude and OpenCode run with tools, file access and shell access
 switched off. Cursor runs in Ask mode against Tinycast's private workspace: read-only exploration,
-no edits, and no MCP auto-approval. Any saved session is deleted after each reply.
+no edits, and no MCP auto-approval. After each reply, Tinycast deletes the chat or session that
+turn created — not your other saved chats.
 
 ### API connections
 
