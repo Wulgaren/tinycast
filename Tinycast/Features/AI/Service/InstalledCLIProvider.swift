@@ -46,7 +46,7 @@ private final class InstalledCLITurnRunner {
     private var continuation: AIProviderStream.Continuation?
     private var outputBuffer = Data()
     private var errorBuffer = Data()
-    private var openCodeSessionID: String?
+    private var turnSessionID: String?
     private var activeExecutable: URL?
 
     init(
@@ -191,6 +191,16 @@ private final class InstalledCLITurnRunner {
             ]
             if let effort { result += ["--variant", effort] }
             return result
+        case .cursor:
+            return [
+                "-p",
+                "--mode", "ask",
+                "--trust",
+                "--workspace", workspace.path,
+                "--model", model,
+                "--output-format", "stream-json",
+                "--stream-partial-output"
+            ]
         case .codex:
             return []
         }
@@ -212,7 +222,7 @@ private final class InstalledCLITurnRunner {
             result["OPENCODE_CONFIG_CONTENT"] = Self.openCodeConfiguration
             result["OPENCODE_AUTO_SHARE"] = "false"
             result["OPENCODE_DISABLE_AUTOUPDATE"] = "true"
-        case .codex:
+        case .cursor, .codex:
             break
         }
         return result
@@ -261,7 +271,7 @@ private final class InstalledCLITurnRunner {
     }
 
     private func apply(_ frame: InstalledAIStreamFrame) {
-        if let sessionID = frame.sessionID { openCodeSessionID = sessionID }
+        if let sessionID = frame.sessionID { turnSessionID = sessionID }
         for event in frame.events { continuation?.yield(event) }
         if let error = frame.error {
             fail(error)
@@ -289,7 +299,7 @@ private final class InstalledCLITurnRunner {
             let fallback = kind.title + " exited with status " + String(status) + "."
             fail(detail.isEmpty ? fallback : detail)
         }
-        deleteOpenCodeSession()
+        deleteTurnSession()
         cleanup()
     }
 
@@ -310,24 +320,52 @@ private final class InstalledCLITurnRunner {
         process?.terminate()
     }
 
-    private func deleteOpenCodeSession() {
-        guard kind == .openCode, let sessionID = openCodeSessionID,
-            let executable = activeExecutable
-        else { return }
-        let workspace = workspace
-        let environment = environment(for: executable)
-        Task.detached {
-            let process = Process()
-            process.executableURL = executable
-            process.arguments = ["session", "delete", sessionID, "--pure"]
-            process.currentDirectoryURL = workspace
-            process.environment = environment
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            try? process.run()
-            process.waitUntilExit()
+    private func deleteTurnSession() {
+        guard let sessionID = turnSessionID else { return }
+        switch kind {
+        case .openCode:
+            guard let executable = activeExecutable else { return }
+            let workspace = workspace
+            let environment = environment(for: executable)
+            Task.detached {
+                let process = Process()
+                process.executableURL = executable
+                process.arguments = ["session", "delete", sessionID, "--pure"]
+                process.currentDirectoryURL = workspace
+                process.environment = environment
+                process.standardInput = FileHandle.nullDevice
+                process.standardOutput = FileHandle.nullDevice
+                process.standardError = FileHandle.nullDevice
+                try? process.run()
+                process.waitUntilExit()
+            }
+        case .cursor:
+            // The CLI has no delete-chat; chats live under ~/.cursor/chats/<workspace>/<id>.
+            let root = Self.cursorChatsRoot()
+            Task.detached {
+                let fm = FileManager.default
+                guard
+                    let workspaces = try? fm.contentsOfDirectory(
+                        at: root, includingPropertiesForKeys: nil)
+                else { return }
+                for workspace in workspaces {
+                    try? fm.removeItem(
+                        at: workspace.appending(path: sessionID, directoryHint: .isDirectory))
+                }
+            }
+        case .claude, .codex:
+            break
         }
+    }
+
+    private static func cursorChatsRoot() -> URL {
+        if let override = ProcessInfo.processInfo.environment["TC_CURSOR_CHATS_ROOT"],
+            !override.isEmpty
+        {
+            return URL(fileURLWithPath: override, isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser.appending(
+            path: ".cursor/chats", directoryHint: .isDirectory)
     }
 
     private func cleanup() {
@@ -339,7 +377,7 @@ private final class InstalledCLITurnRunner {
         continuation = nil
         outputBuffer.removeAll(keepingCapacity: false)
         errorBuffer.removeAll(keepingCapacity: false)
-        openCodeSessionID = nil
+        turnSessionID = nil
         activeExecutable = nil
     }
 }
