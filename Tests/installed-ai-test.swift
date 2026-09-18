@@ -121,9 +121,9 @@ struct InstalledAITests {
             configuration.contains("\"permission\":\"deny\"")
                 && configuration.contains("\"share\":\"disabled\""),
             "OpenCode receives deny-all permissions and disabled sharing")
-        expect(
-            fixture.read("deleted.log").contains("ses_stub"),
-            "OpenCode deletes the session created for the reply")
+        let deleted = await fixture.awaitFile("deleted.log", containing: "ses_stub")
+        if !deleted { print("OpenCode invocations: \(fixture.read("opencode-args.log"))") }
+        expect(deleted, "OpenCode deletes the session created for the reply")
         fixture.expectPrompt("opencode-prompt.log")
     }
 
@@ -152,9 +152,10 @@ struct InstalledAITests {
         expect(!events.contains(.text("Cursor reply")), "Cursor skips buffered assistant flushes")
         expect(events.last == .finished, "Cursor finishes the provider stream")
         let arguments = fixture.read("agent-args.log")
-        for flag in ["-p", "--mode", "ask", "--trust", "--workspace", "--model", "composer-2.5",
-            "--output-format", "stream-json", "--stream-partial-output"]
-        {
+        for flag in [
+            "-p", "--mode", "ask", "--trust", "--workspace", "--model", "composer-2.5",
+            "--output-format", "stream-json", "--stream-partial-output"
+        ] {
             expect(arguments.contains(flag), "Cursor runs with \(flag)")
         }
         expect(!arguments.contains("--force"), "Cursor never runs with --force")
@@ -162,10 +163,13 @@ struct InstalledAITests {
         expect(
             !arguments.contains("--approve-mcps"),
             "Cursor never auto-approves the user's MCP servers")
+        expect(
+            !fixture.read("agent-args.log").contains("\"mcp\""),
+            "Cursor discovery and turns never edit the user's MCP configuration")
         fixture.expectPrompt("agent-prompt.log")
         let chat = fixture.cursorChats.appending(path: "ws/ses_cursor", directoryHint: .isDirectory)
         expect(
-            !FileManager.default.fileExists(atPath: chat.path),
+            await fixture.awaitMissing(chat),
             "Cursor deletes the local chat created for the reply")
     }
 
@@ -295,6 +299,24 @@ private final class Fixture {
             let argv = try? JSONDecoder().decode([String].self, from: data)
         else { return [] }
         return argv
+    }
+
+    func awaitFile(_ name: String, containing value: String) async -> Bool {
+        await awaitCondition { self.read(name).contains(value) }
+    }
+
+    func awaitMissing(_ url: URL) async -> Bool {
+        await awaitCondition { !FileManager.default.fileExists(atPath: url.path) }
+    }
+
+    /// Cleanup outlives the stream on purpose, so the assertion waits instead of racing it.
+    private func awaitCondition(_ isSatisfied: () -> Bool) async -> Bool {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while ContinuousClock.now < deadline {
+            if isSatisfied() { return true }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        return isSatisfied()
     }
 
     func read(_ name: String) -> String {

@@ -24,9 +24,9 @@ final class InstalledAIManager {
     }
 
     @discardableResult
-    func refresh(enabledKinds: Set<InstalledAIKind> = Set(InstalledAIKind.managedCLIKinds))
-        -> Task<Void, Never>
-    {
+    func refresh(
+        enabledKinds: Set<InstalledAIKind> = Set(InstalledAIKind.managedCLIKinds)
+    ) -> Task<Void, Never> {
         var tasks: [Task<Void, Never>] = []
         for kind in InstalledAIKind.managedCLIKinds {
             if enabledKinds.contains(kind) {
@@ -164,8 +164,10 @@ final class InstalledAIManager {
             return (
                 kind,
                 InstalledAIStatus(
-                    phase: models.status == 0 && !catalog.isEmpty ? .ready : .failed(
-                        "Cursor returned no models."),
+                    phase: models.status == 0 && !catalog.isEmpty
+                        ? .ready
+                        : .failed(
+                            "Cursor returned no models."),
                     version: version, executable: executable, models: catalog)
             )
         case .codex:

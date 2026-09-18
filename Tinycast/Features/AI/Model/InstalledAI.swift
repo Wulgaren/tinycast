@@ -52,6 +52,14 @@ enum InstalledAIKind: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
+    /// Cursor's CLI has no empty-MCP-config flag, so the person enabling it has to be told.
+    var isolationCaveat: String? {
+        switch self {
+        case .cursor: return "Ask mode · your Cursor MCP servers still apply"
+        case .codex, .claude, .openCode: return nil
+        }
+    }
+
     var signInCommand: String {
         switch self {
         case .codex: return "codex login"

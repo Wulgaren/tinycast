@@ -371,9 +371,7 @@ struct AISettingsView: View {
                     }
                 } label: {
                     Text("\(kind.title) · Ready")
-                    Text(
-                        status.version.map { "Version \($0) · \(modelCount(status.models))" }
-                            ?? modelCount(status.models))
+                    Text(readyDetail(kind, status))
                 }
             case .signInRequired:
                 LabeledContent {
@@ -582,6 +580,14 @@ struct AISettingsView: View {
     private func copySignInCommand(_ kind: InstalledAIKind) {
         Paster.copyPlainText(kind.signInCommand)
         core.showMessage("Copied \(kind.signInCommand)")
+    }
+
+    private func readyDetail(_ kind: InstalledAIKind, _ status: InstalledAIStatus) -> String {
+        var parts: [String] = []
+        if let version = status.version { parts.append("Version " + version) }
+        parts.append(modelCount(status.models))
+        if let caveat = kind.isolationCaveat { parts.append(caveat) }
+        return parts.joined(separator: " · ")
     }
 
     private func modelCount(_ models: [InstalledAIModel]) -> String {

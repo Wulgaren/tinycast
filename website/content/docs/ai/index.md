@@ -96,8 +96,10 @@ or needs you to sign in. It links to the install page and can copy the sign-in c
 
 Tinycast uses them as plain chat. Claude and OpenCode run with tools, file access and shell access
 switched off. Cursor runs in Ask mode against Tinycast's private workspace: read-only exploration,
-no edits, and no MCP auto-approval. After each reply, Tinycast deletes the chat or session that
-turn created — not your other saved chats.
+no edits, and no MCP auto-approval. Cursor's CLI has no way to start without your MCP configuration,
+so MCP servers you have already approved in Cursor still apply on this route — the Providers pane
+says so on the Cursor row. After each reply, Tinycast deletes the chat or session that turn
+created — not your other saved chats.
 
 ### API connections
 

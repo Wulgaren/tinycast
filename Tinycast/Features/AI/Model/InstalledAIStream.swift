@@ -102,7 +102,8 @@ enum InstalledAIStreamDecoder {
             if object["is_error"] as? Bool == true
                 || (object["subtype"] as? String) == "error"
             {
-                frame.error = (object["result"] as? String)
+                frame.error =
+                    (object["result"] as? String)
                     ?? message(in: object)
                     ?? "Cursor could not finish the response."
                 return frame

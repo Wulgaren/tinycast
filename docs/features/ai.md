@@ -75,16 +75,19 @@ depends on neither, and Quick Actions carries its own route rather than borrowin
   bodies are `AIRequestBody`'s, in `Model/`, precisely so a wrong shape fails a harness rather than a
   conversation. `installed-ai-test` runs the Claude, OpenCode and Cursor adapters against real subprocess
   stubs and pins their safety boundaries.
-- **Claude, OpenCode and Cursor are text transports, not agents.** Claude runs one turn with no tools, MCP
-  servers, browser integration, slash commands or persisted session — but never `--bare`, which reads
-  neither OAuth nor the keychain and so refuses the very sign-in this route reuses. OpenCode runs `--pure` with
-  deny-all permissions, disabled sharing and a private working directory; Tinycast deletes the session
-  recorded in its JSON stream before the turn finishes. Cursor runs `agent -p --mode ask` with `--trust` against
-  Tinycast's private workspace and never `--force` / `--yolo` / `--approve-mcps`. Ask mode blocks edits;
-  Tinycast does not strip the user's Cursor MCP config (project and global configs merge, and the CLI has
-  no empty-config flag), so isolation is ask-mode plus refusing MCP auto-approval. The turn finishes only
-  after Tinycast deletes the local Cursor chat for that reply (the CLI has no delete-chat). None of these
-  routes offer images or web search.
+- **Claude, OpenCode and Cursor are text transports, not agents.** Claude runs one turn with no tools,
+  browser integration, slash commands or persisted session — but never `--bare`, which reads neither
+  OAuth nor the keychain and so refuses the very sign-in this route reuses. OpenCode runs `--pure` with
+  deny-all permissions, disabled sharing and a private working directory. Cursor runs `agent -p --mode ask`
+  with `--trust` against Tinycast's private workspace and never `--force` / `--yolo` / `--approve-mcps`;
+  ask mode blocks edits. Each deletes the session or chat it created once the child exits, and Tinycast
+  never reaches into the user's own config to do it. **Only Claude keeps the user's MCP servers out of the
+  process**, through `--strict-mcp-config` with an empty config — and even that yields to an installed
+  managed MCP policy, which makes the CLI reject both flags. OpenCode and Cursor load the global config
+  either way, because in both the configs merge with no opt-out; what refuses the call is `permission:
+  deny` for OpenCode and withheld MCP approval for Cursor. Cursor's is the only one of the three resting
+  on an approval prompt rather than an explicit deny, which is why its Providers row says so and the
+  other two do not. None of these routes offer images or web search.
 - **Chat is a palette screen, not another window** — including its lifetime. The launcher command
   enters `.ai`; its search field is the composer, and the shared footer's primary pill is Return's
   job: Send (`↵`), or Stop (`↵`) while a response streams — followed by Actions (`⌘K`), which owns
@@ -349,11 +352,11 @@ Tinycast's instructions and bounded conversation history as stdin, consumes newl
 and never puts prompt text on the process command line. Claude uses stream JSON, `--effort` and no
 session persistence. OpenCode runs pure with an inline deny-all configuration and passes the selected
 model variant through `--variant`; it captures the returned session identifier, then calls
-`opencode session delete` after the process exits — and yields `.finished` only once that delete
-returns. Cursor runs ask mode with `--trust`,
-`stream-json` and `--stream-partial-output`, never `--force` / `--yolo` / `--approve-mcps`, then removes the
-local chat under `~/.cursor/chats/<workspace>/<session_id>` because the CLI has no delete-chat, and
-finishes the stream only after that removal.
+`opencode session delete` after the process exits. Cursor runs ask mode with `--trust`,
+`stream-json` and `--stream-partial-output`, never `--force` / `--yolo` / `--approve-mcps`, then removes
+the local chat under `~/.cursor/chats/<workspace>/<session_id>` because the CLI has no delete-chat.
+A turn finishes on its own completion frame; both cleanups run detached after the child exits, so
+housekeeping never holds the composer shut.
 Cancellation terminates the child process; only one installed-CLI turn can own a runner at a time.
 
 ## Web search and attachments
@@ -369,9 +372,9 @@ transport code at all.
 | --- | --- | --- | --- | --- |
 | Apple Intelligence | never — it reaches nothing | never — the model is text-only | never | never |
 | Codex | thread-scoped `web_search` config | `image` input part | never — the app-server takes no document part | never — its tools are disabled by design |
-| Claude command | never | never | never | never |
-| OpenCode command | never | never | never | never |
-| Cursor command | never | never | never | not stripped — ask mode, no `--approve-mcps` |
+| Claude command | never | never | never | none load — `--strict-mcp-config` with an empty config, unless a managed MCP policy forces both flags off |
+| OpenCode command | never | never | never | the global config still loads — `permission: deny` refuses the call |
+| Cursor command | never | never | never | the global config still loads — ask mode and withheld approval refuse the call |
 | OpenRouter | `plugins: [{id: "web"}]` — OpenRouter's own layer, any model | `image_url` part, only for models whose catalog lists the `image` modality | never yet — its catalog publishes a `file` modality Tinycast does not read | `tools` + `role: "tool"` turns |
 | OpenAI | not offered | `image_url` part, assumed supported | `file` part with `filename` and a `file_data` data URL | `tools` + `role: "tool"` turns |
 | Gemini / compatible | not offered | `image_url` part, assumed supported | never — a gateway that has not implemented the part bills the upload before rejecting it | `tools` + `role: "tool"` turns |

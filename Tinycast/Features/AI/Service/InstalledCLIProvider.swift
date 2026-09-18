@@ -55,7 +55,6 @@ private final class InstalledCLITurnRunner {
     private var outputBuffer = Data()
     private var errorBuffer = Data()
     private var turnSessionID: String?
-    private var turnCompleted = false
     private var activeExecutable: URL?
 
     init(
@@ -143,7 +142,7 @@ private final class InstalledCLITurnRunner {
         // Strong on purpose: the runner must outlive its provider to tear the turn down on exit.
         process.terminationHandler = { [self] process in
             let status = process.terminationStatus
-            Task { @MainActor in await self.didExit(status: status, token: token) }
+            Task { @MainActor in self.didExit(status: status, token: token) }
         }
         do {
             try process.run()
@@ -289,7 +288,9 @@ private final class InstalledCLITurnRunner {
         if let error = frame.error {
             fail(error)
         } else if frame.completed {
-            turnCompleted = true
+            continuation?.yield(.finished)
+            continuation?.finish()
+            continuation = nil
         }
     }
 
@@ -299,25 +300,18 @@ private final class InstalledCLITurnRunner {
         if errorBuffer.count > 16_384 { errorBuffer.removeFirst(errorBuffer.count - 16_384) }
     }
 
-    private func didExit(status: Int32, token: TurnToken) async {
+    private func didExit(status: Int32, token: TurnToken) {
         guard self.token === token else { return }
-        let completed = turnCompleted
-        await deleteTurnSession()
         if continuation != nil {
-            if completed {
-                continuation?.yield(.finished)
-                continuation?.finish()
-                continuation = nil
-            } else {
-                let detail = (String(bytes: errorBuffer, encoding: .utf8) ?? "")
-                    .replacingOccurrences(
-                        of: "\u{001B}\\[[0-9;]*[A-Za-z]", with: "", options: .regularExpression
-                    )
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                let fallback = kind.title + " exited with status " + String(status) + "."
-                fail(detail.isEmpty ? fallback : detail)
-            }
+            let detail = (String(bytes: errorBuffer, encoding: .utf8) ?? "")
+                .replacingOccurrences(
+                    of: "\u{001B}\\[[0-9;]*[A-Za-z]", with: "", options: .regularExpression
+                )
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let fallback = kind.title + " exited with status " + String(status) + "."
+            fail(detail.isEmpty ? fallback : detail)
         }
+        deleteTurnSession()
         cleanup()
     }
 
@@ -336,9 +330,11 @@ private final class InstalledCLITurnRunner {
         continuation?.finish(throwing: CancellationError())
         continuation = nil
         process?.terminate()
+        outputBuffer.removeAll(keepingCapacity: false)
+        errorBuffer.removeAll(keepingCapacity: false)
     }
 
-    private func deleteTurnSession() async {
+    private func deleteTurnSession() {
         guard let sessionID = turnSessionID else { return }
         turnSessionID = nil
         switch kind {
@@ -346,32 +342,42 @@ private final class InstalledCLITurnRunner {
             guard let executable = activeExecutable else { return }
             let workspace = workspace
             let environment = environment(for: executable)
-            await Task.detached {
-                let process = Process()
-                process.executableURL = executable
-                process.arguments = ["session", "delete", sessionID, "--pure"]
-                process.currentDirectoryURL = workspace
-                process.environment = environment
-                process.standardInput = FileHandle.nullDevice
-                process.standardOutput = FileHandle.nullDevice
-                process.standardError = FileHandle.nullDevice
-                try? process.run()
-                process.waitUntilExit()
-            }.value
-        case .cursor:
-            // The CLI has no delete-chat; chats live under ~/.cursor/chats/<workspace>/<id>.
-            let root = Self.cursorChatsRoot()
-            let fm = FileManager.default
-            guard
-                let workspaces = try? fm.contentsOfDirectory(
-                    at: root, includingPropertiesForKeys: nil)
-            else { return }
-            for workspace in workspaces {
-                try? fm.removeItem(
-                    at: workspace.appending(path: sessionID, directoryHint: .isDirectory))
+            Task.detached {
+                Self.deleteOpenCodeSession(
+                    sessionID, executable: executable, workspace: workspace,
+                    environment: environment)
             }
+        case .cursor:
+            let root = Self.cursorChatsRoot()
+            Task.detached { Self.deleteCursorChat(sessionID, root: root) }
         case .claude, .codex:
             break
+        }
+    }
+
+    nonisolated private static func deleteOpenCodeSession(
+        _ sessionID: String, executable: URL, workspace: URL, environment: [String: String]
+    ) {
+        let process = Process()
+        process.executableURL = executable
+        process.arguments = ["session", "delete", sessionID, "--pure"]
+        process.currentDirectoryURL = workspace
+        process.environment = environment
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        try? process.run()
+        process.waitUntilExit()
+    }
+
+    /// The CLI has no delete-chat; chats live under `~/.cursor/chats/<workspace>/<id>`.
+    nonisolated private static func deleteCursorChat(_ sessionID: String, root: URL) {
+        let fm = FileManager.default
+        guard let workspaces = try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        else { return }
+        for workspace in workspaces {
+            try? fm.removeItem(
+                at: workspace.appending(path: sessionID, directoryHint: .isDirectory))
         }
     }
 
@@ -395,7 +401,6 @@ private final class InstalledCLITurnRunner {
         outputBuffer.removeAll(keepingCapacity: false)
         errorBuffer.removeAll(keepingCapacity: false)
         turnSessionID = nil
-        turnCompleted = false
         activeExecutable = nil
     }
 }
